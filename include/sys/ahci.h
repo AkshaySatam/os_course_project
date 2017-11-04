@@ -25,11 +25,24 @@
 #define ATA_STATUS_BSY  0x80 // Indicates the drive is preparing to send/receive data (wait for it to clear).
                              // In case of 'hang' (it never clears), do a software reset.
 
+/*ADDED*/
+#define	SATA_SIG_ATA	0x00000101	// SATA drive
+#define	SATA_SIG_ATAPI	0xEB140101	// SATAPI drive
+#define	SATA_SIG_SEMB	0xC33C0101	// Enclosure management bridge
+#define	SATA_SIG_PM	0x96690101	// Port multiplier
+
 #define CMD_FIS_DEV_LBA (1U << 6)
 
 #define MAX_CMD_SLOT_CNT 32
 #define MAX_PORT_CNT     32
 
+#define AHCI_BASE 0x400000  //ADDED
+
+#define ATA_CMD_READ_DMA_EX 0x25
+#define ATA_CMD_WRITE_DMA_EX 0x35
+
+#define ATA_DEV_BUSY  0x80
+#define ATA_DEV_DRQ  0x08
 typedef enum {
   FIS_TYPE_REG_H2D = 0x27,   // Register FIS - host to device
   FIS_TYPE_REG_D2H = 0x34,   // Register FIS - device to host
