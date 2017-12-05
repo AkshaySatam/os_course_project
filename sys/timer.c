@@ -18,7 +18,7 @@ char *convert2(unsigned long num, int base)
 	ptr = &buffer[49];
 	*ptr = '\0';
 
-	volatile char * timePtr  = (char*) (0xB8000+25*160)-2 ;
+	volatile char * timePtr  = (char*) (0xffffffff800b8000+25*160)-2 ;
 	do
 	{
 		*--ptr = r[num%base];

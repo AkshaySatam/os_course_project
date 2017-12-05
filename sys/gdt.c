@@ -18,6 +18,8 @@
 
 #define MAX_GDT 32
 
+//int64_t pfh_stack[4096];
+
 struct tss_t {
   uint32_t reserved_0;
   void *rsp0;
@@ -83,6 +85,9 @@ void init_gdt() {
 
   _x86_64_asm_lgdt(&gdtr, 8, 16);
   _x86_64_asm_ltr(0x30);
+
+  //Adding TSS for handling page faults:
+  //set_tss_rsp((void *)&pfh_stack[4080]);
 }
 
 void set_tss_rsp(void *rsp) {

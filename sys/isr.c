@@ -2,17 +2,21 @@
 #include <sys/interrupts.h>
 #include <sys/string.h>
 #include <sys/kprintf.h>
+#include <sys/pageFaultHandler.h>
+
+#define KERNEL_STACK_SIZE 4096
 
 extern void timer_int();
 extern void keyboard_int();
+extern void pageFault_int();
 /*
  * Set an entry in the IDT
  */
 int shiftFlag=0;
 int cntlFlag=0;
 
-volatile char *glyphPtr  = (char*) ((0xB8000+25*160)-50) ;
-volatile char *cntlPtr  = (char*) ((0xB8000+25*160)-52) ;
+volatile char *glyphPtr  = (char*) ((0xffffffff800b8000+25*160)-50) ;
+volatile char *cntlPtr  = (char*) ((0xffffffff800b8000+25*160)-52) ;
 
 unsigned char kbdus_Shift[128] =
 {
@@ -93,6 +97,11 @@ unsigned char kbdus[128] =
     0,	/* All other keys are undefined */
 };
 
+void pageFaultHandler (){
+	kprintf("You are in Page Fault Handler\n");
+	handlePageFault();	
+}
+
 void idt_set_gate(unsigned long num, unsigned long base, unsigned short select, unsigned char flags)
 {
 //	kprintf("In setGate\n");
@@ -123,6 +132,7 @@ void idt_install()
 void init_isr()
 {
 //	kprintf("In initISR\n");
+	idt_set_gate(14, ((uint64_t)pageFault_int),0x08, 0x8E);
 	idt_set_gate(32, ((uint64_t)timer_int),0x08, 0x8E);
 	idt_set_gate(33, ((uint64_t)keyboard_int),0x08, 0x8E);
 }
@@ -136,10 +146,11 @@ static void execute_interrupt(struct isr_regs *reg)
 	tick_timer(reg);
 
 	outb(0x20, 0x20);
+//		kprintf("Done with timer\n");
 }
 
 void interrupt_handler(struct isr_regs *reg)
-{	//kprintf("In Interrupt_Handler\n");
+{//	kprintf("In Interrupt_Handler\n");
 	execute_interrupt(reg);
 }
 
@@ -189,4 +200,5 @@ void kbInt_handler(struct isr_regs *reg)
 //		kprintf("Key released\n");
 	}
 	outb(0x20, 0x20);
+//	kprintf("Done with Keyboard Interrupt\n");
 }

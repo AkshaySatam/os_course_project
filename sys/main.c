@@ -8,39 +8,80 @@
 #include <sys/pic.h>
 #include <sys/memoryallocator.h>
 //#include <sys/memset_tmp.h>
+#include <sys/cs.h>
+#include <sys/syscalls.h>
+#include <sys/tarfsOps.h>
+#include <sys/elfParser.h>
 
 #define INITIAL_STACK_SIZE 4096
 uint8_t initial_stack[INITIAL_STACK_SIZE]__attribute__((aligned(16)));
 uint32_t* loader_stack;
 extern char kernmem, physbase;
-
 void start(uint32_t *modulep, void *physbase, void *physfree)
 {
+	videoMem=0xb8000;
 	uint64_t totalMemory=0;
-	uint64_t startIndices[10],endIndices[10],counter=0;
+	uint64_t startIndices[10],endIndices[10];
+	uint64_t counter=0;
 	struct smap_t {
 		uint64_t base, length;
 		uint32_t type;
 	}__attribute__((packed)) *smap;
-	kprintf("physbase  %p\n",(uint64_t)physbase);
+//	kprintf("physbase  %p\n",(uint64_t)physbase);
 	while(modulep[0] != 0x9001) modulep += modulep[1]+2;
 	for(smap = (struct smap_t*)(modulep+2); smap < (struct smap_t*)((char*)modulep+modulep[1]+2*4); ++smap) {
 		if (smap->type == 1 /* memory */ && smap->length != 0) {
-			kprintf("Available Physical Memory [%p-%p]\n", smap->base, smap->base + smap->length);
-			totalMemory+=smap->length;
+//			kprintf("Available Physical Memory [%p-%p]\n", smap->base, smap->base + smap->length);
+			
 			startIndices[counter] = smap -> base;
+			if(startIndices[counter]%0x1000!=0){
+				startIndices[counter]=startIndices[counter]>>12;
+				startIndices[counter]=startIndices[counter]<<12;
+				startIndices[counter]+= 0x1000;
+			}
 			endIndices  [counter] = smap -> base + smap -> length;
+//			kprintf("Range: %p-%p\n",startIndices[counter],endIndices[counter]);
 			counter++;
 		}
 	}
+	
 
-	initializeMemory(totalMemory,startIndices,endIndices,physbase,physfree,counter);
-	kprintf("Total memory (int) %d\n",totalMemory);
+	totalMemory = endIndices[counter-1]-startIndices[0];
+
+	initializeMemory(totalMemory,startIndices,endIndices,physbase,physfree,counter,(uint64_t)&kernmem);
+//	uint64_t tarFsHdr, elfHdr;
+//	char c[11] = {'b','i','n','/','s','b','u','s','h'};	
+
+	//Adding TSS for handling page faults:
+	uint64_t pfh_stack[4096];
+  	set_tss_rsp((void *)&pfh_stack[4080]);
+	idt_install();
+        PIC_remap(0x20,0x20);
+        enableInterrupt();
+        install_timer();
+
+//	uint64_t* faultyPtr = (uint64_t*) 0x609877;
+//	*faultyPtr = 45;
+	char c[11] = {'b','i','n','/','h','e','l','l','o'};
+	setupMSRs();
+	
+	//clean code
+	loadNewProcess(c);
+
+	//working code
+//----------------------------------------------
+//	tarFsHdr = searchTarfs(c);
+//	elfHdr = tarFsHdr+512;
+//	parseElf(elfHdr);
+//----------------------------------------------
+//	contextSwitch();
+
+
+//	kprintf("Total memory (int) %d\n",totalMemory);
 	kprintf("physfree %p\n", (uint64_t)physfree);
 	kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
-	for(int i=0;i<counter;i++){
-		kprintf("");
-	}
+//	kprintf("Kernmem %x\n",(uint64_t)&kernmem);
+//	mapKernel((uint64_t) &kernmem);
 //	checkAllBuses();
 	//port_rebase(abar -> ports, _port);
 	//if(i == 1){
@@ -52,6 +93,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
                  if(a == 1)
                  kprintf("\n%c", buf2);
                  }*/
+//        kprintf("Paging done\n");
+ //       kprintf("Paging done\n");
+   //     kprintf("Paging done\n");	
 	while(1);
 }
 

@@ -4,7 +4,11 @@ int find(char* string,char c);
 void scrolldown();
 char* convert(unsigned int , int); 
 
-volatile char *video = (volatile char*)0xB8000;
+volatile char *video = (volatile char*)0xffffffff800b8000;
+
+//volatile char *video = (volatile char*)0xffffffff800b8000;
+
+
 int count=0,line=0;
 int colour = 7;
 
@@ -77,7 +81,7 @@ void kprintf(const char* format, ...){
 				scrolldown();
 				line=23;
 			}
-			video = (volatile char*) 0xB8000+(line*160);
+			video = (volatile char*) 0xffffffff800b8000+(line*160);
 			count=0;
 			string++;
 		} else if (*string=='\r'){
@@ -96,7 +100,7 @@ void kprintf(const char* format, ...){
 			if(line==24){
 				scrolldown();
 				line=23;
-				video = (volatile char*) 0xB8000+(line*160);
+				video = (volatile char*) 0xffffffff800b8000+(line*160);
 			}
 			count=0;
 		}
@@ -116,9 +120,9 @@ void scrolldown(){
 	int charNum=0;
 	char* prevLine;
 	for(int lineNum=0;lineNum<=22;lineNum++){
-		prevLine = (char*) 0XB8000 + (lineNum*160);
-		clearLine((char*) 0XB8000 + (lineNum*160));
-		char* nextLine = (char*) 0XB8000 + ((lineNum+1)*160);
+		prevLine = (char*) 0xffffffff800b8000 + (lineNum*160);
+		clearLine((char*) 0xffffffff800b8000 + (lineNum*160));
+		char* nextLine = (char*) 0xffffffff800b8000 + ((lineNum+1)*160);
 		while(charNum!=160){
 			*prevLine++=*nextLine++;
 			charNum++;
@@ -126,8 +130,8 @@ void scrolldown(){
 		charNum=0;
 	}
 	
-	video = (volatile char*) 0xB8000+(23*160);
-	prevLine = (char*) 0XB8000 + 23*160;
+	video = (volatile char*) 0xffffffff800b8000 +(23*160);
+	prevLine = (char*) 0xffffffff800b8000 + 23*160;
 	clearLine(prevLine);
 }
 
