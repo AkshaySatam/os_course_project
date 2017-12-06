@@ -31,6 +31,10 @@ uint64_t getOffsetaddress(uint64_t p){
 	return p;
 }
 
+uint64_t getVirtualAddressFromPhysical(uint64_t p){
+        return (kernmemPtr + (p-pbPtr));
+}
+
 void mapVirtualAddress(uint64_t addr){
 	uint64_t pmlOff, pdpeOff, pdeOff, pteOff;
         uint64_t *pml4P, *pdpeP, *pdeP, *pteP;
@@ -375,21 +379,24 @@ void remapNextPointers(uint64_t physbase,uint64_t kernmem,uint64_t physfree,uint
 
 void memset(uint64_t start, uint64_t size, uint64_t value){
 	char* c;
-	for(int i=0;i<4096;i++){	
+	for(int i=0;i<size;i++){	
 		 c = (char*)(start+i);
 		*c = 0;
 	}
 }
 
-uint64_t getFreePage(){	
+uint64_t getFreePage(){
+	uint64_t headV;	
 	uint64_t head =  freeListHead->startAddress;
 	freeListHead->isfree=0;
 	freeListHead = freeListHead->nextFree;
-//	memset((uint64_t)head,4096,0);
+	headV = getVirtualAddressFromPhysical(head);
+	memset(headV,4096,0);
 	return head;
 }
 
 uint64_t getFreePages(int count){	
+	uint64_t headV;	
 	uint64_t head =  freeListHead->startAddress;
 	int i=1;
 	while(i<=count){
@@ -397,6 +404,8 @@ uint64_t getFreePages(int count){
 		freeListHead = freeListHead->nextFree;
 		i++;
 	}
+	headV = getVirtualAddressFromPhysical(head);
+	memset(headV,4096*count,0);
 	return head;
 }
 

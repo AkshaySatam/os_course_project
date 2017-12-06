@@ -12,6 +12,9 @@ typedef enum process_state{
 
 } process_state;
 
+//This is for the PCB list
+struct task_struct* pcbHead, *pcbList;
+
 struct task_struct{
 	//Do not add any fields on top of the current field. Add at bottom. Because it will break the OS as the byte-shift mentioned in assembly code will cause unexpected results.
 	uint64_t pid;
@@ -25,7 +28,9 @@ struct task_struct{
 	struct vma* vlHead;
 	uint64_t vmaCount;
 	uint64_t pml4;
-//	uint64_t i;
+	uint64_t start_rsp;			// Kernel thread stack pointer - start
+	uint64_t start_rsp2;			// User thread stack pointer - start
+	struct task_struct* next;
 }task_struct;
 
 struct vma{
@@ -39,7 +44,9 @@ void contextSwitch();
 int processID[MAX_PROCESS];
 struct task_struct task;
 struct task_struct task2;
+struct task_struct task3;
 struct task_struct* currentTask;
+struct task_struct* childTask;
 struct task_struct *prev,*current,*next;              // The current and the next process in the process list
 
 

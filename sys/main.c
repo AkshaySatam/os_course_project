@@ -12,6 +12,7 @@
 #include <sys/syscalls.h>
 #include <sys/tarfsOps.h>
 #include <sys/elfParser.h>
+#include <sys/scheduler.h>
 
 #define INITIAL_STACK_SIZE 4096
 uint8_t initial_stack[INITIAL_STACK_SIZE]__attribute__((aligned(16)));
@@ -55,6 +56,10 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 	//Adding TSS for handling page faults:
 	uint64_t pfh_stack[4096];
   	set_tss_rsp((void *)&pfh_stack[4080]);
+
+	//Initialize PCB list
+	initializePCBList();
+	
 	idt_install();
         PIC_remap(0x20,0x20);
         enableInterrupt();

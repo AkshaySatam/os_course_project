@@ -25,6 +25,7 @@ void contextSwitch(){
 void init_process2(){
 //	kprintf("Initializing thread 2\n");
 	task2.rsp = (uint64_t) &task2.kstack[4061];
+	task2.start_rsp = (uint64_t) &task2.kstack[4076];
 	task2.kstack[4061] = 0; //r15
 	task2.kstack[4062] = 0; //r14
 	task2.kstack[4063] = 0; //r13
@@ -77,8 +78,8 @@ void test3(){
 	char c[11] = {'b','i','n','/','h','e','l','l','o'};
 	tarFsHdr = searchTarfs(c);
 	elfHdr = tarFsHdr+512;
+	kprintf("ELF Header %x",elfHdr);
 	parseElf(elfHdr);
-
 	switchToRing3(&task2);
 	/*
 	TODO: this will be required only when user process returns

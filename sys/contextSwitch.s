@@ -2,6 +2,7 @@
 .global context_switch
 context_switch:
 
+cli
 PUSHF
 push %rax
 push %rbx
@@ -34,4 +35,5 @@ pop %rcx
 pop %rbx
 pop %rax
 POPF
+sti
 ret

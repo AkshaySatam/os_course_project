@@ -31,6 +31,9 @@ uint64_t getPDPEaddress(uint64_t p);
 uint64_t getPDEaddress(uint64_t p);
 uint64_t getPTEaddress(uint64_t p);
 
+uint64_t getVirtualAddressFromPhysical(uint64_t p);
+
+
 int my_ceil(int num);
 uint64_t* kmalloc (uint64_t memorySize);
 uint64_t getFreePages(int count);

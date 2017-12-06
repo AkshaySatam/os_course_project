@@ -248,15 +248,131 @@ void sys_read (){}
 void (*sysCallPtr[50]) (void)={
 	[0]=sys_read,
 	[1]=sys_write,
-	[3]=sys_fork
+	[2]=sys_fork
 };
 
 void sys_fork(){
 	copyCurrentProcessIntoAnother();
+	yield();
+}
+
+/*
+struct task_struct createNewProcess(){
+	struct task_struct s;
+	return s;
+}
+*/
+void copyPCBContents(){
+	struct vma* vl = currentTask->vmaList;
+	uint64_t vmaCount = currentTask->vmaCount;
+	while(vmaCount>0){
+		struct vma v;
+		v.startVAddress = vl->startVAddress;
+		v.size = vl->size;
+		v.startPAddress = vl->startPAddress;
+		v.type=vl->type;
+	
+		if (childTask->vlHead==NULL){
+			*(childTask->vmaList)= v;
+			childTask->vlHead = childTask->vmaList;
+		} else {
+			*(childTask->vlHead->next) = v;
+			childTask->vlHead = childTask->vlHead->next;
+		}
+		childTask->vlHead->next = (struct vma*)(childTask->vlHead)+1;
+		childTask->vmaCount++;
+	
+                vl = vl+1;
+                vmaCount--;
+        }
+	
+}
+
+void copyUserStack(){
+	enterVMAdetails(currentTask,0,0x409000,4096,1);
+	uint64_t size = (currentTask->start_rsp2 - currentTask->rsp2)+1;
+	copyBytesReverse(currentTask->start_rsp2,0x409ff0,size);
+	//TODO set the RSPs of child user stacks
+}
+
+void copyKernelStack(){
+	childTask->rsp = (uint64_t) &(childTask->kstack[4076]);
+	uint64_t size = (currentTask->start_rsp - currentTask->rsp)+1;
+	copyBytesReverse(currentTask->start_rsp,childTask->rsp,size);	
+	//TODO set the RSPs of child kernel stacks
+}
+
+void copyParentStacks(){
+        copyUserStack();
+        copyKernelStack();
 }
 
 void copyCurrentProcessIntoAnother(){
-	
+
+	childTask = addPCB(); 	
+	initializeVMA(childTask);
+	copyPageTableStructure((uint64_t*)currentTask->pml4);
+	copyPCBContents();
+	copyParentStacks();	
+}
+
+void copyPML4(uint64_t* newP,uint64_t* p){
+	uint64_t p1,p1V,p2,p2V;
+	for(int i=0;i<512;i++){
+		if(*(p+i)!=0){
+			p1 = getFreePage();
+			p1V = getVirtualAddressFromPhysical(p1);
+			*(newP+i)=p1V|0x7;
+			
+			p2 = (*(p+i))&0xfffffffffffff000;
+			p2V = getVirtualAddressFromPhysical(p2);
+			copyPDPE((uint64_t*)p1V,(uint64_t*)p2V);
+		}
+	}	
+}
+
+void copyPDPE(uint64_t* newP,uint64_t* p){
+	uint64_t p1,p1V,p2,p2V;
+	for(int i=0;i<512;i++){
+		if(*(p+i)!=0){
+			p1 = getFreePage();
+			p1V = getVirtualAddressFromPhysical(p1);
+			*(newP+i)=p1V|0x7;
+			
+			p2 = (*(p+i))&0xfffffffffffff000;
+			p2V = getVirtualAddressFromPhysical(p2);
+			copyPDE((uint64_t*)p1V,(uint64_t*)p2V);
+		}
+	}	
+}
+
+void copyPDE(uint64_t* newP, uint64_t* p){
+	uint64_t p1,p1V,p2,p2V;
+	for(int i=0;i<512;i++){
+		if(*(p+i)!=0){
+			p1 = getFreePage();
+			p1V = getVirtualAddressFromPhysical(p1);
+			*(newP+i)=p1V|0x7;
+			
+			p2 = (*(p+i))&0xfffffffffffff000;
+			p2V = getVirtualAddressFromPhysical(p2);
+			copyPTE((uint64_t*)p1V,(uint64_t*)p2V);
+		}
+	}	
+}
+
+void copyPTE(uint64_t* newP, uint64_t* p){
+	uint64_t p1 = *p & 0xfffffffffffff000;
+	*newP = p1|0x5;
+}
+
+void copyPageTableStructure(uint64_t* pml4Parent){
+	uint64_t pml4,pml4V;
+
+	pml4 = getFreePage();
+	pml4V = getVirtualAddressFromPhysical(pml4);
+
+	copyPML4((uint64_t*)pml4V, (uint64_t*)pml4Parent);
 }
 
 int callWrite(){

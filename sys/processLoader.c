@@ -42,8 +42,8 @@ void dummy(uint64_t addr){
 
 	*(pteP+pteOff) = funcAdd|0x7;
 	
-	//TODO Address for Stack. this is dummy
-	//	pteOff++;
+	//	Address for Stack. this is dummy
+	//		pteOff++;
 	//	*(pteP+pteOff) = stackAdd|0x7;	
 }
 
@@ -75,7 +75,6 @@ void copyToPrcMem(uint64_t srcMem,uint64_t destMem,uint64_t size, uint64_t entry
 	//Entering Stack details
 	enterVMAdetails(currentTask, 0,0x401000,4096,1);
 
-	//TODO current task will be given to this function. hardcoding for time being
 	printVMAdetails(currentTask);
 
 	//This section deals with copying process memory
@@ -84,15 +83,22 @@ void copyToPrcMem(uint64_t srcMem,uint64_t destMem,uint64_t size, uint64_t entry
 	
 	//Here we copy bytes into the process memory. This will be done by the page-fault handler. Will incorporate this into Page-fault handler later.
 	copyBytes(srcMem, destMem,size);
-
-	//Assign stack pointer
-	task2.rsp2 = 0x401ff0;
-	task2.usrSpcIP = entry;
+	kprintf("Memory copied\n");	
+	assignUserStack(currentTask,entry);
 //	switchToRing3(&task2);
 }
 
-void initializeVMA(struct task_struct* currentTask){
-	currentTask->vmaList = (struct vma*) kmalloc(4096);
+void assignUserStack(struct task_struct* task,uint64_t entry){
+	//Assign stack pointer
+	task->rsp2 = 0x401ff0;
+	task->start_rsp2= task->rsp2;
+	task->usrSpcIP = entry;	
+}
+
+void initializeVMA(struct task_struct* t){
+	t->vmaList = (struct vma*) kmalloc(4096);
+	t->vmaCount=0;
+	t->vlHead=NULL;
 }
 
 void copyBytes(uint64_t src, uint64_t dest, uint64_t size){
@@ -106,6 +112,20 @@ void copyBytes(uint64_t src, uint64_t dest, uint64_t size){
 		count++;
 	}
 }
+	//TODO Address for Stack. this is dummy
+
+void copyBytesReverse(uint64_t src, uint64_t dest, uint64_t size){
+	//uint64_t* s = (uint64_t*) src;
+	//uint64_t* d = (uint64_t*) dest;
+	char* s = (char*) src;
+	char* d = (char*) dest; 
+	int count=0;
+	while(count<size){
+		*d-- = *s--;
+		count++;
+	}
+}
+
 
 void printVMAdetails(struct task_struct* currentTask){
 	kprintf("Start V Address %x",currentTask->vmaList->startVAddress);
