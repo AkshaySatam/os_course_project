@@ -10,6 +10,8 @@ struct page_descriptor{
 	uint32_t endAddress;
 	short isfree,isAvailable;
 };
+
+void flushTLB();
 uint64_t pgDescCount;
 uint64_t pml4;
 uint64_t pdpe;

@@ -12,7 +12,7 @@ void yield2(){
 	//TODO Changing the Page tables
 	switchCr3(currentTask->pml4P);
 	//TODO Flushing the TLB
-	//	flushTLB();
+	flushTLB();
 
 	context_switch(prev,currentTask);	
 }

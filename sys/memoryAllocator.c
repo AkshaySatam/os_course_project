@@ -5,6 +5,13 @@ uint64_t pmlOff;
 uint64_t pdpeOff;
 uint64_t pdeOff;
 
+void flushTLB(){
+	__asm__ __volatile__ (
+	"movq %%cr3, %%rax\n"
+	"movq %%rax, %%cr3\n"
+	:::
+	);
+}
 uint64_t getPML4address(uint64_t p){
 	p = p<<16;
 	p = p>>55;
