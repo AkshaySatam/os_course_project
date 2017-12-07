@@ -359,7 +359,7 @@ void copyParentStacks(){
 void copyCurrentProcessIntoAnother(){
 	childTask = addPCB(); 	
 	initializeVMA(childTask);
-	copyPageTableStructure((uint64_t*)currentTask->pml4);
+	copyPageTableStructure((uint64_t*) getVirtualAddressFromPhysical(currentTask->pml4P));
 	copyPCBContents();
 	copyParentStacks();	
 }
@@ -418,6 +418,7 @@ void copyPageTableStructure(uint64_t* pml4Parent){
 	uint64_t pml4,pml4V;
 
 	pml4 = getFreePage();
+	childTask->pml4P = pml4;
 	pml4V = getVirtualAddressFromPhysical(pml4);
 
 	copyPML4((uint64_t*)pml4V, (uint64_t*)pml4Parent);

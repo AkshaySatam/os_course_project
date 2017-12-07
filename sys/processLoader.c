@@ -65,6 +65,7 @@ void copyToPrcMem(uint64_t srcMem,uint64_t destMem,uint64_t size, uint64_t entry
 	//currentTask = &task2;
 //	currentTask->vmaCount=0;
 	currentTask->pml4 = (uint64_t)pml4V;
+	currentTask->pml4P = pml4;
 
 	//Initialize process VMA
 //	initializeVMA(currentTask);
@@ -164,7 +165,7 @@ void enterVMAdetails(struct task_struct* currentTask, uint64_t srcMem, uint64_t 
 		currentTask->vlHead->next = (struct vma*)(currentTask->vlHead)+1;
 		
 }
-
+/*
 void switchCr3(uint64_t pml4){
 	pml4 = pml4 | 0x7;
 	enablePaging2(pml4);
@@ -179,5 +180,5 @@ void enablePaging2(uint64_t pml4Ptr){
                         :"r" (pml4Ptr)
                         :);
 }
-
+*/
 

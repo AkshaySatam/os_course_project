@@ -33,6 +33,8 @@ uint64_t getPTEaddress(uint64_t p);
 
 uint64_t getVirtualAddressFromPhysical(uint64_t p);
 
+void switchCr3(uint64_t pml4);
+void enablePaging2(uint64_t pml4Ptr);
 
 int my_ceil(int num);
 uint64_t* kmalloc (uint64_t memorySize);

@@ -29,6 +29,7 @@ struct task_struct{
 	struct vma* vlHead;
 	uint64_t vmaCount;
 	uint64_t pml4;
+	uint64_t pml4P;
 	uint64_t start_rsp;			// Kernel thread stack pointer - start
 	uint64_t start_rsp2;			// User thread stack pointer - start
 	struct task_struct* next;

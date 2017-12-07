@@ -9,6 +9,11 @@ void yield2(){
 	struct task_struct* prev = currentTask;
 	currentTask = currentTask->next;
 	setProcessSpecificMSRs();
+	//TODO Changing the Page tables
+	switchCr3(currentTask->pml4P);
+	//TODO Flushing the TLB
+	//	flushTLB();
+
 	context_switch(prev,currentTask);	
 }
 

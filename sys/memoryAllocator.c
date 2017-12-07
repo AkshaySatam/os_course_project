@@ -50,7 +50,8 @@ void mapVirtualAddress(uint64_t addr){
         kprintf("PDE %d    ",pdeOff);
         kprintf("PTE %d   ",pteOff);
 	
-	pml4P = (uint64_t *) currentTask->pml4;
+	pml4P = (uint64_t *) getVirtualAddressFromPhysical(currentTask->pml4P);
+//	pml4P = (uint64_t *) currentTask->pml4;
 
 	//check if pdpe entry is present or not
 	if(*(pml4P+pmlOff)==0){
@@ -514,4 +515,19 @@ void setVirtualAddressForPhysicalMemory(uint64_t pmloff,uint64_t pdpeoff,uint64_
 	uint64_t p1 = pmloff<<39;
 	uint64_t p0 = 0xffff000000000000;
 	*///videoMem = p4|p3|p2|p1|p0;	
+}
+
+void switchCr3(uint64_t pml4){
+    //    pml4 = pml4 | 0x7;
+        enablePaging2(pml4|0x7);
+        kprintf("New page tables\n");
+}
+
+
+void enablePaging2(uint64_t pml4Ptr){
+ __asm__  __volatile__(
+                        "movq %0, %%cr3\n"
+                        :
+                        :"r" (pml4Ptr)
+                        :);
 }

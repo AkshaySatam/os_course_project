@@ -17,8 +17,13 @@ int counter =0;
 void contextSwitch(){
 //	create_process(&task);
 //	create_process(&task2);
+
 	currentTask = addPCB();
+	currentTask->pml4P = pml4;
+
 	task2 = addPCB();
+	task2->pml4P = pml4;
+
 	init_process2(task2,(uint64_t)&test3);
 	test();
 }
