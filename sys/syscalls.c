@@ -177,7 +177,7 @@ void syscallHandler(){
 			"movq %%rsp,%%gs:16\n"
 			"movq %%gs:8,%%rsp\n"
 			"pushq %%gs:16\n"
-	//		"push %%rax\n"
+			"push %%rax\n"
 			"push %%rbx\n"
 			"push %%rcx\n"
 			"push %%rdx\n"
@@ -192,7 +192,6 @@ void syscallHandler(){
 			"push %%r14\n"
 			"push %%r15\n"
 			"movq %%rsp,%%r15\n"
-		//	"call callWrite\n"
 			"call *sysCallPtr(,%%rax,8)\n"
 			"pop %%r15\n"
 			"pop %%r14\n"
@@ -207,7 +206,7 @@ void syscallHandler(){
 			"pop %%rdx\n"
 			"pop %%rcx\n"
 			"pop %%rbx\n"
-	//		"pop %%rax\n"
+			"pop %%rax\n"
 			"pop %%gs:16\n"
 			"movq %%rsp,%%gs:8\n"
 			"movq %%gs:16,%%rsp\n"
@@ -329,7 +328,7 @@ void copyKernelStack(){
 	//uint64_t i = ((uint64_t)childTask->kstack + (rsp_dummy - (uint64_t)currentTask->kstack))/8;
 	uint64_t i =  (rsp_dummy - (uint64_t)currentTask->kstack)/8;
 	i--;
-	childTask->kstack[i--]= (uint64_t)((&syscallHandler)+60);
+	childTask->kstack[i--]= (uint64_t)((&syscallHandler)+61);
 	childTask->kstack[i--]=0;//eflag
 	childTask->kstack[i--]=0;//rax
 	childTask->kstack[i--]=0;//rbx
