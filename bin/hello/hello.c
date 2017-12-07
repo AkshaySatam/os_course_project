@@ -79,6 +79,7 @@ int main(int argc, char* argv[]){
 	char buf3[30] ={"Keep calm and believe"};	
         writeB(1,buf3,12);	
 	my_fork();
+        writeB(1,buf,12);
 	while(1){
 
 	}

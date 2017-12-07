@@ -246,6 +246,7 @@ void sys_write (){
 	kprintf("FD: %d\n",fd);
 	kprintf("Buffer value %s\n",buffer);
 	kprintf("Length: %d\n",length);
+//	yield2();
 }
 
 void sys_read (){}
@@ -308,7 +309,7 @@ void copyUserStack(){
 
 void copyKernelStack(){
 
-	copyBytes((uint64_t) &currentTask->kstack[0], (uint64_t)&childTask->kstack[0],512);
+	copyBytes((uint64_t) &currentTask->kstack[0], (uint64_t)&childTask->kstack[0],4096);
 	
 	uint64_t rsp_dummy;
 
