@@ -12,6 +12,6 @@ void enterVMAdetails(struct task_struct* currentTask, uint64_t srcMem, uint64_t 
 void printVMAdetails(struct task_struct* currentTask);
 void copyBytes(uint64_t src, uint64_t dest, uint64_t size);
 void copyBytesReverse(uint64_t src, uint64_t dest, uint64_t size);
-void initializeVMA(struct task_struct* currentTask);
+//void initializeVMA(struct task_struct* currentTask);
 void assignUserStack(struct task_struct* task,uint64_t entry);
 #endif

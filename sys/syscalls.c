@@ -41,6 +41,7 @@ int writeB (uint64_t fd, char* buf, uint64_t length){
                         "rax", "rdi","rsi","rdx");
 	return returnCode;
 }
+
 void setupMSRs(){
 	buf =  (char*) kmalloc(4096);
 	syscallHndPtr = (uint64_t)&syscallHandler;
@@ -95,14 +96,17 @@ void setupMSRs(){
 //	setRFlags(0x00000000);
 
 	//KernGSBase
-	currentTask = &task2;
-	hi = getHigherHalf((uint64_t)currentTask);
+	//No need of below stmt as this will be always executed on the current task
+	//currentTask = &task2;
+
+	//MOved this in another function
+/*	hi = getHigherHalf((uint64_t)currentTask);
 	lo = getLowerHalf((int64_t)currentTask);
 	setKernGSBase(0xC0000102,hi,lo);
 
 	*loPtr=0;
 	*hiPtr=0;
-	cpuGetMSR(0xC0000102,loPtr,hiPtr);
+	cpuGetMSR(0xC0000102,loPtr,hiPtr);*/
 
 //	kprintf("Low KGSB: %x \n",*loPtr);
 //	kprintf("High KGSB: %x \n",*hiPtr);	
@@ -187,6 +191,7 @@ void syscallHandler(){
 			"push %%r13\n"
 			"push %%r14\n"
 			"push %%r15\n"
+			"movq %%rsp,%%r15\n"
 		//	"call callWrite\n"
 			"call *sysCallPtr(,%%rax,8)\n"
 			"pop %%r15\n"
@@ -253,7 +258,8 @@ void (*sysCallPtr[50]) (void)={
 
 void sys_fork(){
 	copyCurrentProcessIntoAnother();
-	yield();
+	kprintf("Exiting thread 2\n");
+	yield2();
 }
 
 /*
@@ -289,17 +295,60 @@ void copyPCBContents(){
 }
 
 void copyUserStack(){
+
+	//TODO This stack is being assigned on parent process's address space. Should change this.
 	enterVMAdetails(currentTask,0,0x409000,4096,1);
-	uint64_t size = (currentTask->start_rsp2 - currentTask->rsp2)+1;
+	uint64_t size = currentTask->start_rsp2 - currentTask->rsp2;
 	copyBytesReverse(currentTask->start_rsp2,0x409ff0,size);
-	//TODO set the RSPs of child user stacks
+
+	// set the RSPs of child user stacks
+	childTask->rsp2 = currentTask->rsp2;
+	childTask->start_rsp2 = 0x409ff0;
 }
 
 void copyKernelStack(){
-	childTask->rsp = (uint64_t) &(childTask->kstack[4076]);
-	uint64_t size = (currentTask->start_rsp - currentTask->rsp)+1;
-	copyBytesReverse(currentTask->start_rsp,childTask->rsp,size);	
-	//TODO set the RSPs of child kernel stacks
+
+	copyBytes((uint64_t) &currentTask->kstack[0], (uint64_t)&childTask->kstack[0],512);
+	
+	uint64_t rsp_dummy;
+
+	__asm__ __volatile__ (
+		"movq %%r15, %0;"
+		: "=r" (rsp_dummy)
+		:
+		:
+	);
+
+
+//	childTask->rsp = (uint64_t) &(childTask->kstack[500]);
+//	uint64_t size = currentTask->start_rsp - currentTask->rsp_dummy;
+//	copyBytesReverse(currentTask->start_rsp,childTask->rsp,size);
+	//childTask->rsp = (childTask->rsp) - (8*size);
+
+	//uint64_t i = ((uint64_t)childTask->kstack + (rsp_dummy - (uint64_t)currentTask->kstack))/8;
+	uint64_t i =  (rsp_dummy - (uint64_t)currentTask->kstack)/8;
+	i--;
+	childTask->kstack[i--]= (uint64_t)((&syscallHandler)+60);
+	childTask->kstack[i--]=0;//eflag
+	childTask->kstack[i--]=0;//rax
+	childTask->kstack[i--]=0;//rbx
+	childTask->kstack[i--]=0;//rcx
+	childTask->kstack[i--]=0;//rdx
+	childTask->kstack[i--]=0;//rdi
+	childTask->kstack[i--]=0;//rsi
+	childTask->kstack[i--]=0;//r8
+	childTask->kstack[i--]=0;//r9
+	childTask->kstack[i--]=0;//r10
+	childTask->kstack[i--]=0;//r11
+	childTask->kstack[i--]=0;//r12
+	childTask->kstack[i--]=0;//r13
+	childTask->kstack[i--]=0;//r14
+	childTask->kstack[i]=0;  //r15			
+	
+	//set the RSPs of child kernel stacks
+	childTask->rsp = (uint64_t) &(childTask->kstack[i]);
+	childTask->start_rsp = 	(uint64_t) &(childTask->kstack[500]);
+	
 }
 
 void copyParentStacks(){
@@ -308,7 +357,6 @@ void copyParentStacks(){
 }
 
 void copyCurrentProcessIntoAnother(){
-
 	childTask = addPCB(); 	
 	initializeVMA(childTask);
 	copyPageTableStructure((uint64_t*)currentTask->pml4);

@@ -21,8 +21,9 @@ struct task_struct{
 	uint64_t rsp;			// Kernel thread stack pointer
 	uint64_t rsp2;			// User thread stack pointer
 	uint64_t usrSpcIP;
-	uint64_t kstack[KERNEL_STACK_SIZE];
-	uint64_t ustack[KERNEL_STACK_SIZE];
+	uint64_t rsp_dummy;
+	uint64_t kstack[512];
+	uint64_t ustack[512];
 	enum process_state state;
 	struct vma* vmaList;
 	struct vma* vlHead;
@@ -43,18 +44,19 @@ struct vma{
 void contextSwitch();
 int processID[MAX_PROCESS];
 struct task_struct task;
-struct task_struct task2;
+struct task_struct* task2;
 struct task_struct task3;
 struct task_struct* currentTask;
 struct task_struct* childTask;
 struct task_struct *prev,*current,*next;              // The current and the next process in the process list
 
 
-/*Scheduler functions*/
+	void initializeVMA(struct task_struct* currentTask);
 	void switch2(struct task_struct* next,struct task_struct* prev);
 	void create_process(struct task_struct* p1);
-	void init_process2();
-	void yield();
+	void init_process2(struct task_struct* t, uint64_t rip);
+//	void yield();
+//	void yield2();
 	void test3();
 	void test2();
 	void test();

@@ -62,12 +62,12 @@ void copyToPrcMem(uint64_t srcMem,uint64_t destMem,uint64_t size, uint64_t entry
 
 	//This section deals with entering VMA details
 	//TODO hardcoded for time being	
-	currentTask = &task2;
-	currentTask->vmaCount=0;
+	//currentTask = &task2;
+//	currentTask->vmaCount=0;
 	currentTask->pml4 = (uint64_t)pml4V;
 
 	//Initialize process VMA
-	initializeVMA(currentTask);
+//	initializeVMA(currentTask);
 	
 	//Entering file details	
 	enterVMAdetails(currentTask, srcMem,destMem,size,0);
@@ -95,12 +95,13 @@ void assignUserStack(struct task_struct* task,uint64_t entry){
 	task->usrSpcIP = entry;	
 }
 
+/*
 void initializeVMA(struct task_struct* t){
 	t->vmaList = (struct vma*) kmalloc(4096);
 	t->vmaCount=0;
 	t->vlHead=NULL;
 }
-
+*/
 void copyBytes(uint64_t src, uint64_t dest, uint64_t size){
 	uint64_t* s = (uint64_t*) src;
 	uint64_t* d = (uint64_t*) dest; 
