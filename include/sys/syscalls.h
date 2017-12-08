@@ -6,6 +6,9 @@
 #include<sys/cs.h>
 #include<sys/scheduler.h>
 
+
+void updateRAX(uint64_t* add , uint64_t value);
+void copyKernelStack();
 void copyPCBContents();
 uint64_t getVirtualAddressFromPhysical(uint64_t p);
 void copyPML4(uint64_t* newP,uint64_t* p);

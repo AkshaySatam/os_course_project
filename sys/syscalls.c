@@ -176,8 +176,8 @@ void syscallHandler(){
 			"swapgs\n"
 			"movq %%rsp,%%gs:16\n"
 			"movq %%gs:8,%%rsp\n"
-			//"pushq %%gs:16\n"
-			"push %%rax\n"
+//			"pushq %%gs:16\n"
+			"push %%rax\n" // Ignore: Dont push/pop rax as it will be used to return the value
 			"push %%rbx\n"
 			"push %%rcx\n"
 			"push %%rdx\n"
@@ -206,7 +206,7 @@ void syscallHandler(){
 			"pop %%rdx\n"
 			"pop %%rcx\n"
 			"pop %%rbx\n"
-			"pop %%rax\n"
+			"pop %%rax\n"	
 			//"pop %%gs:16\n"
 			"movq %%rsp,%%gs:8\n"
 			"movq %%gs:16,%%rsp\n"
@@ -245,7 +245,7 @@ void sys_write (){
 	kprintf("FD: %d\n",fd);
 	kprintf("Buffer value %s\n",buffer);
 	kprintf("Length: %d\n",length);
-//	yield2();
+	yield2();
 }
 
 void sys_read (){}
@@ -259,7 +259,7 @@ void (*sysCallPtr[50]) (void)={
 void sys_fork(){
 	copyCurrentProcessIntoAnother();
 	kprintf("Exiting thread 2\n");
-	yield2();
+//	yield2();
 }
 
 /*
@@ -297,9 +297,9 @@ void copyPCBContents(){
 void copyUserStack(){
 
 	//TODO This stack is being assigned on parent process's address space. Should change this.
-	enterVMAdetails(currentTask,0,0x409000,4096,1);
-	uint64_t size = currentTask->start_rsp2 - currentTask->rsp2;
-	copyBytesReverse(currentTask->start_rsp2,0x409ff0,size);
+	//enterVMAdetails(currentTask,0,0x409000,4096,1);
+	//uint64_t size = currentTask->start_rsp2 - currentTask->rsp2;
+	//copyBytesReverse(currentTask->start_rsp2,0x409ff0,size);
 
 	// set the RSPs of child user stacks
 	childTask->rsp2 = currentTask->rsp2;
@@ -307,7 +307,7 @@ void copyUserStack(){
 }
 
 void copyKernelStack(){
-
+	
 	copyBytes((uint64_t) &currentTask->kstack[0], (uint64_t)&childTask->kstack[0],4096);
 	
 	uint64_t rsp_dummy;
@@ -326,7 +326,14 @@ void copyKernelStack(){
 	//childTask->rsp = (childTask->rsp) - (8*size);
 
 	//uint64_t i = ((uint64_t)childTask->kstack + (rsp_dummy - (uint64_t)currentTask->kstack))/8;
+
 	uint64_t i =  (rsp_dummy - (uint64_t)currentTask->kstack)/8;
+	
+	//These method directly manipulate the Rax values on stack. Commenting for time being.
+	uint64_t j = i;
+	updateRAX(&currentTask->kstack[j+13],childTask->pid);
+	updateRAX(&childTask->kstack[j+13],0);
+
 	i--;
 	childTask->kstack[i--]= (uint64_t)((&syscallHandler)+53);
 	childTask->kstack[i--]=0;//eflag
@@ -348,7 +355,10 @@ void copyKernelStack(){
 	//set the RSPs of child kernel stacks
 	childTask->rsp = (uint64_t) &(childTask->kstack[i]);
 	childTask->start_rsp = 	(uint64_t) &(childTask->kstack[500]);
-	
+}
+
+void updateRAX(uint64_t* add , uint64_t value){
+	*add = value;
 }
 
 void copyParentStacks(){
@@ -360,13 +370,13 @@ void copyCurrentProcessIntoAnother(){
 	childTask = addPCB(); 	
 	initializeVMA(childTask);
 	copyPageTableStructure((uint64_t*) getVirtualAddressFromPhysical(currentTask->pml4P));
-	copyPCBContents();
 	copyParentStacks();	
+	copyPCBContents();
 }
 
 void copyPML4(uint64_t* newP,uint64_t* p){
 	uint64_t p1,p1V,p2,p2V;
-	for(int i=0;i<512;i++){
+	for(int i=0;i<511;i++){
 		if(*(p+i)!=0){
 			p1 = getFreePage();
 			p1V = getVirtualAddressFromPhysical(p1);
@@ -376,7 +386,8 @@ void copyPML4(uint64_t* newP,uint64_t* p){
 			p2V = getVirtualAddressFromPhysical(p2);
 			copyPDPE((uint64_t*)p1V,(uint64_t*)p2V);
 		}
-	}	
+	}
+	*(newP+511) = *(p+511);	
 }
 
 void copyPDPE(uint64_t* newP,uint64_t* p){
@@ -410,8 +421,15 @@ void copyPDE(uint64_t* newP, uint64_t* p){
 }
 
 void copyPTE(uint64_t* newP, uint64_t* p){
-	uint64_t p1 = *p & 0xfffffffffffff000;
-	*newP = p1|0x5;
+	
+	uint64_t p1;
+	for(int i=0;i<512;i++){
+		if(*(p+i)!=0){
+			p1 = (*(p+i)) & 0xfffffffffffff000;
+			//TODO should change the perm to 0x5
+			*(newP+i) = p1|0x5;
+		}
+	}	
 }
 
 void copyPageTableStructure(uint64_t* pml4Parent){
@@ -419,8 +437,10 @@ void copyPageTableStructure(uint64_t* pml4Parent){
 
 	pml4 = getFreePage();
 	childTask->pml4P = pml4;
-	pml4V = getVirtualAddressFromPhysical(pml4);
+	//TODO this is a right way of doing things but commenting for now
+	//childTask->pml4P = currentTask->pml4P;
 
+	pml4V = getVirtualAddressFromPhysical(pml4);
 	copyPML4((uint64_t*)pml4V, (uint64_t*)pml4Parent);
 }
 

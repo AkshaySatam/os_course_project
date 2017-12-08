@@ -27,6 +27,13 @@ void memcpy(void* dest, const void* src, uint64_t size){
 	}
 }
 
+void initializeKstack(struct task_struct* t){
+	//Making the child stack entries to 0
+        for(int i=0;i<512;i++){
+                t->kstack[i]=0;
+        }
+}
+
 struct task_struct* addPCB(){
 	struct task_struct t;
 	
@@ -40,6 +47,8 @@ struct task_struct* addPCB(){
 		*pcbHead = t;
 		pcbHead->next = pcbList;
 	}
+	pcbHead->pid = getProcessID();
+	initializeKstack(pcbHead);
 	return pcbHead;	
 }
 

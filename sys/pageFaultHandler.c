@@ -2,14 +2,30 @@
 #include<sys/memoryallocator.h>
 
 void handlePageFault(){
+	uint64_t a;
 	uint64_t faultingAddress = getFaultingAddress();
 	kprintf("Faulting address:%x \n",faultingAddress);
 	if(isValidAddress(faultingAddress)){
-		mapVirtualAddressToPhysical(faultingAddress);
+		if(cowBitSet(faultingAddress)){
+			//TODO you might need to kmalloc
+			a = (uint64_t) kmalloc(4096);
+			copyBytes((faultingAddress & 0xfffffffffffff000),(uint64_t)a,4096);
+		}else{
+			mapVirtualAddressToPhysical(faultingAddress);
+		}
 	}else{
 		kprintf("Address not mapped in VMA List\n");
+		while(1);
 	}
-//	while(1);
+}
+
+short cowBitSet(uint64_t addr){
+
+	//check if the 11th, 0th, 2nd bits are set or not
+	if(((0x0000000000000fff) & addr)==0x805){
+		return 1;
+	}
+		return 0;
 }
 
 short isValidAddress(uint64_t faultingAddress){

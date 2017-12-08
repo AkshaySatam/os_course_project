@@ -63,5 +63,6 @@ struct task_struct *prev,*current,*next;              // The current and the nex
 	void test();
 	void usrPrFn();
 	void loadNewProcess(char c[]);
+	int getProcessID();
 #endif
 
