@@ -1,6 +1,8 @@
 #ifndef cs_h 
 #define cs_h
 #include<sys/defs.h>
+#include<sys/fileDescriptor.h>
+
 #define KERNEL_STACK_SIZE 4096
 #define MAX_PROCESS		100
 
@@ -24,6 +26,7 @@ struct task_struct{
 	uint64_t rsp_dummy;
 	uint64_t kstack[512];
 	uint64_t ustack[512];
+	struct file_descriptor fdArr[128];
 	enum process_state state;
 	struct vma* vmaList;
 	struct vma* vlHead;

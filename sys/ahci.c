@@ -18,8 +18,8 @@ void probe_port(hba_mem_t *abar);
 static int check_type(hba_port_t *port);
 int find_cmdslot(hba_port_t *port);
 void port_rebase(hba_port_t *port, int portno);
-int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint32_t*  buf);
-int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint32_t* buf);
+int read2(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint32_t*  buf);
+int write2(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint32_t* buf);
 uint32_t update (unsigned short bus, unsigned short slot,unsigned short func, unsigned short offset);
 
 
@@ -152,14 +152,14 @@ void probe_port(hba_mem_t *abar)
 							p = p +1;
 						}
 						for(int n = 0; n < 8; n++){	
-							b =  write(&abar ->ports[i], sectors, 0, 1, (uint32_t *)buf);
+							b =  write2(&abar ->ports[i], sectors, 0, 1, (uint32_t *)buf);
 							sectors++;
 						}	
 					}
 					kprintf("Writing done");
 
 					for(int j = 0; j<800;j++){
-						a= read(&abar ->ports[i], j, 0, 1, newBuf);
+						a= read2(&abar ->ports[i], j, 0, 1, newBuf);
 						uint8_t *z=(uint8_t*)newBuf;
 						for(int x =0;x<512;x++)
 						{
@@ -214,7 +214,7 @@ switch (port->sig)
 
 
 
-int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint32_t* buf)
+int read2(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint32_t* buf)
 {       
 //	kprintf("In Read function \n");
 	int i = 0;
@@ -307,7 +307,7 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
 }
 
 
-int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint32_t* buf)
+int write2(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint32_t* buf)
 {
 //	kprintf("In Write function\n");
         int i = 0;
