@@ -8,12 +8,14 @@ void initializePCBList(){
 void yield2(){
 	struct task_struct* prev = currentTask;
 	currentTask = currentTask->next;
-	setProcessSpecificMSRs();
+	setProcessSpecificMSRs(currentTask);
 	//TODO Changing the Page tables
 	switchCr3(currentTask->pml4P);
 	//TODO Flushing the TLB
 	flushTLB();
-	__asm__ volatile("swapgs\n":::);
+	if((currentTask->isParent == 0) && (currentTask->isChild == 1)){
+		__asm__ volatile("swapgs\n":::);
+	}
 	context_switch(prev,currentTask);	
 }
 
@@ -49,6 +51,8 @@ struct task_struct* addPCB(){
 	}
 	pcbHead->pid = getProcessID();
 	initializeKstack(pcbHead);
+	pcbHead->isChild=0;
+	pcbHead->isParent=0;
 	return pcbHead;	
 }
 
@@ -56,7 +60,7 @@ void removePCB(struct task_struct t){
 
 }
 
-void setProcessSpecificMSRs(){
+void setProcessSpecificMSRs(struct task_struct* ct){
 
 	uint32_t lo,hi;
         uint32_t *loPtr,*hiPtr;
@@ -64,8 +68,8 @@ void setProcessSpecificMSRs(){
         hiPtr = (uint32_t*)kmalloc(4096);
 
 	
-	hi = getHigherHalf((uint64_t)currentTask);
-        lo = getLowerHalf((int64_t)currentTask);
+	hi = getHigherHalf((uint64_t)ct);
+        lo = getLowerHalf((int64_t)ct);
         setKernGSBase(0xC0000102,hi,lo);
 
         *loPtr=0;

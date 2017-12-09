@@ -33,6 +33,8 @@ struct task_struct{
 	uint64_t start_rsp;			// Kernel thread stack pointer - start
 	uint64_t start_rsp2;			// User thread stack pointer - start
 	struct task_struct* next;
+	short isParent;
+	short isChild;
 }task_struct;
 
 struct vma{

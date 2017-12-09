@@ -12,6 +12,6 @@ struct task_struct* addPCB();
 void removePCB(struct task_struct t);
 void yield2();
 void initializePCBList();
-void setProcessSpecificMSRs();
+void setProcessSpecificMSRs(struct task_struct* t);
 #endif
 

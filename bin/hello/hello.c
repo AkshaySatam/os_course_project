@@ -105,6 +105,9 @@ int main(int argc, char* argv[]){
         writeB(1,buf3,12);	
 	my_fork();
         readB(1,buf,12);
+	char buf4[30] ={"Yes... you can"};	
+
+        writeB(1,buf4,12);	
 	while(1){
 
 	}

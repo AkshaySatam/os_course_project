@@ -243,7 +243,7 @@ void sys_write (){
 	::"rax","rdi","rsi","rdx");
 
 //	kprintf("FD: %d\n",fd);
-//	kprintf("Buffer value %s\n",buffer);
+	kprintf("Buffer value %s\n",buffer);
 //	kprintf("Length: %d\n",length);
 //	yield2();
 }
@@ -372,6 +372,8 @@ void copyParentStacks(){
 void copyCurrentProcessIntoAnother(){
 	childTask = addPCB(); 	
 	initializeVMA(childTask);
+	currentTask->isParent = 1;
+	childTask->isChild = 1;
 	copyPageTableStructure((uint64_t*) getVirtualAddressFromPhysical(currentTask->pml4P));
 	copyParentStacks();	
 	copyPCBContents();

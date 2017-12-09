@@ -5,7 +5,7 @@ void handlePageFault(){
 	uint64_t a,*aV;
 	uint64_t faultingAddress = getFaultingAddress();
 	kprintf("Faulting address:%x - Faulting Process: %d\n",faultingAddress, currentTask->pid);
-	if(isValidAddress(faultingAddress)){
+	if(isValidAddress(faultingAddress)!=-1){
 		if(cowBitSet(faultingAddress)){
 			kprintf("COW bit set %d\n",currentTask->pid);
 			//TODO you might need to getFreePage
@@ -36,16 +36,17 @@ short isValidAddress(uint64_t faultingAddress){
 
 	struct vma* v =	currentTask->vmaList;
 	uint64_t vmaCount = currentTask->vmaCount;
-
+	int i =0;
 	while(vmaCount>0){
 		if((faultingAddress < (v->startVAddress + v->size))&&(faultingAddress >= (v->startVAddress))){
-			return 1;
+			return i;
 		}
 		v = v+1;
+		i++;
 		vmaCount--;				
 	}
 
-	return 0;
+	return -1;
 }
 
 void mapVirtualAddressToPhysical(uint64_t faultingAddress){
