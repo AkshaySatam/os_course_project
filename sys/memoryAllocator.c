@@ -52,10 +52,10 @@ void mapVirtualAddress(uint64_t addr){
         pdpeOff = getPDPEaddress(addr);
         pdeOff = getPDEaddress(addr);
         pteOff = getPTEaddress(addr);
-        kprintf("PML %d    ",pmlOff);
-        kprintf("PDPE %d   ",pdpeOff);
-        kprintf("PDE %d    ",pdeOff);
-        kprintf("PTE %d   ",pteOff);
+//        kprintf("PML %d    ",pmlOff);
+  //      kprintf("PDPE %d   ",pdpeOff);
+ //       kprintf("PDE %d    ",pdeOff);
+ //       kprintf("PTE %d   ",pteOff);
 	
 	pml4P = (uint64_t *) getVirtualAddressFromPhysical(currentTask->pml4P);
 //	pml4P = (uint64_t *) currentTask->pml4;
@@ -88,6 +88,52 @@ void mapVirtualAddress(uint64_t addr){
 	pteP = (uint64_t*) (kernmemPtr + (pteAdd-pbPtr));
 
 	newAdd = getFreePage();
+	*(pteP+pteOff)=newAdd|0x7;
+}
+
+void mapVirtualAddressToGivenPhysicalAddr(uint64_t addr,uint64_t newAdd){
+	uint64_t pmlOff, pdpeOff, pdeOff, pteOff;
+        uint64_t *pml4P, *pdpeP, *pdeP, *pteP;
+        uint64_t  pdpeAdd, pdeAdd, pteAdd;
+
+        pmlOff = getPML4address(addr);
+        pdpeOff = getPDPEaddress(addr);
+        pdeOff = getPDEaddress(addr);
+        pteOff = getPTEaddress(addr);
+//        kprintf("PML %d    ",pmlOff);
+//        kprintf("PDPE %d   ",pdpeOff);
+//        kprintf("PDE %d    ",pdeOff);
+  //      kprintf("PTE %d   ",pteOff);
+	
+	pml4P = (uint64_t *) getVirtualAddressFromPhysical(currentTask->pml4P);
+
+	//check if pdpe entry is present or not
+	if(*(pml4P+pmlOff)==0){
+		pdpeAdd = getFreePage();
+		*(pml4P+pmlOff) = pdpeAdd|0x7;
+	}else{
+		pdpeAdd = (*(pml4P+pmlOff))&0xfffffffffffff000;
+	}
+	pdpeP = (uint64_t*)(kernmemPtr + (pdpeAdd-pbPtr));
+
+	//check if pdpe entry is present or not
+	if(*(pdpeP+pdpeOff)==0){
+		pdeAdd = getFreePage();
+		*(pdpeP+pdpeOff)=pdeAdd|0x7;
+	}else{
+		pdeAdd = (*(pdpeP+pdpeOff))&0xfffffffffffff000;
+	}
+	pdeP = (uint64_t*) (kernmemPtr + (pdeAdd-pbPtr));
+	
+	//check if pte entry is present or not
+	if(*(pdeP+pdeOff)==0){
+	 	pteAdd = getFreePage();	
+		*(pdeP+pdeOff) = pteAdd|0x7;
+	}else{
+		pteAdd = (*(pdeP+pdeOff))&0xfffffffffffff000;
+	}
+	pteP = (uint64_t*) (kernmemPtr + (pteAdd-pbPtr));
+
 	*(pteP+pteOff)=newAdd|0x7;
 }
 
@@ -205,7 +251,7 @@ void initializeMemory (uint64_t totalMemory, uint64_t* startIndices, uint64_t*  
 //	mapEntireMemory(0xffffffff80000000,(uint64_t) newPhysfree,(uint64_t)physfree);
 	mapEntireMemory((uint64_t) newPhysfree);
 	enablePaging(pml4Ptr);
-	kprintf("Paging done\n");
+//	kprintf("Paging done\n");
 	remapNextPointers((uint64_t) physbase,kernmem,(uint64_t)physfree,(uint64_t)newPhysfree);
 //	testPageDescriptor((uint64_t)physfree-(uint64_t)physbase,kernmem);
 	testKmalloc();
@@ -527,7 +573,7 @@ void setVirtualAddressForPhysicalMemory(uint64_t pmloff,uint64_t pdpeoff,uint64_
 void switchCr3(uint64_t pml4){
     //    pml4 = pml4 | 0x7;
         enablePaging2(pml4|0x7);
-        kprintf("New page tables\n");
+  //      kprintf("New page tables\n");
 }
 
 

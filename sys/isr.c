@@ -98,7 +98,7 @@ unsigned char kbdus[128] =
 };
 
 void pageFaultHandler (){
-	kprintf("You are in Page Fault Handler\n");
+	//kprintf("You are in Page Fault Handler\n");
 	handlePageFault();	
 }
 

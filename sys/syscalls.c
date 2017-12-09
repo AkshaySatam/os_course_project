@@ -242,13 +242,16 @@ void sys_write (){
 	:"=m"(fd),"=m"(buffer),"=m"(length)
 	::"rax","rdi","rsi","rdx");
 
-	kprintf("FD: %d\n",fd);
-	kprintf("Buffer value %s\n",buffer);
-	kprintf("Length: %d\n",length);
-	yield2();
+//	kprintf("FD: %d\n",fd);
+//	kprintf("Buffer value %s\n",buffer);
+//	kprintf("Length: %d\n",length);
+//	yield2();
 }
 
-void sys_read (){}
+void sys_read (){
+	kprintf("Exiting Read\n");
+	yield2();
+}
 
 void (*sysCallPtr[50]) (void)={
 	[0]=sys_read,
@@ -258,7 +261,7 @@ void (*sysCallPtr[50]) (void)={
 
 void sys_fork(){
 	copyCurrentProcessIntoAnother();
-	kprintf("Exiting thread 2\n");
+	kprintf("Exiting fork : PCB number - %d \n",currentTask->pid);
 //	yield2();
 }
 
@@ -380,7 +383,7 @@ void copyPML4(uint64_t* newP,uint64_t* p){
 		if(*(p+i)!=0){
 			p1 = getFreePage();
 			p1V = getVirtualAddressFromPhysical(p1);
-			*(newP+i)=p1V|0x7;
+			*(newP+i)=p1|0x7;
 			
 			p2 = (*(p+i))&0xfffffffffffff000;
 			p2V = getVirtualAddressFromPhysical(p2);
@@ -396,7 +399,7 @@ void copyPDPE(uint64_t* newP,uint64_t* p){
 		if(*(p+i)!=0){
 			p1 = getFreePage();
 			p1V = getVirtualAddressFromPhysical(p1);
-			*(newP+i)=p1V|0x7;
+			*(newP+i)=p1|0x7;
 			
 			p2 = (*(p+i))&0xfffffffffffff000;
 			p2V = getVirtualAddressFromPhysical(p2);
@@ -411,7 +414,7 @@ void copyPDE(uint64_t* newP, uint64_t* p){
 		if(*(p+i)!=0){
 			p1 = getFreePage();
 			p1V = getVirtualAddressFromPhysical(p1);
-			*(newP+i)=p1V|0x7;
+			*(newP+i)=p1|0x7;
 			
 			p2 = (*(p+i))&0xfffffffffffff000;
 			p2V = getVirtualAddressFromPhysical(p2);
@@ -426,8 +429,9 @@ void copyPTE(uint64_t* newP, uint64_t* p){
 	for(int i=0;i<512;i++){
 		if(*(p+i)!=0){
 			p1 = (*(p+i)) & 0xfffffffffffff000;
-			//TODO should change the perm to 0x5
-			*(newP+i) = p1|0x5;
+			//TODO should change the perm to 0x805
+			//TODO also change the parent permissions when you are sure that both the threads return to User space
+			*(newP+i) = p1|0x805;
 		}
 	}	
 }

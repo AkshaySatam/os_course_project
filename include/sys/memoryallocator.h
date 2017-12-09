@@ -43,6 +43,7 @@ uint64_t* kmalloc (uint64_t memorySize);
 uint64_t getFreePages(int count);
 
 void mapVirtualAddress(uint64_t faultingAddress);
+void mapVirtualAddressToGivenPhysicalAddr(uint64_t addr,uint64_t newAdd);
 void excludeUnavailableMemory(uint64_t physfree);
 void initializeMemory (uint64_t totalMemory, uint64_t * startIndices, uint64_t*  endIndices, void * physbase, void * physfree, uint64_t counter,uint64_t kernmem);
 uint64_t getFreePage();

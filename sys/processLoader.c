@@ -14,10 +14,10 @@ void dummy(uint64_t addr){
         pdpeOff = getPDPEaddress(addr);
         pdeOff = getPDEaddress(addr);
         pteOff = getPTEaddress(addr);
-	kprintf("PML %d    ",pmlOff);
-	kprintf("PDPE %d   ",pdpeOff);
-	kprintf("PDE %d    ",pdeOff);
-	kprintf("PTE %d   ",pteOff);
+//	kprintf("PML %d    ",pmlOff);
+//	kprintf("PDPE %d   ",pdpeOff);
+//	kprintf("PDE %d    ",pdeOff);
+//	kprintf("PTE %d   ",pteOff);
 
         pdpeAdd = getFreePage();
 //      kprintf("PDPE %p\n ",pdpe);
@@ -54,8 +54,8 @@ void copyToPrcMem(uint64_t srcMem,uint64_t destMem,uint64_t size, uint64_t entry
 	uint64_t physDiff = pml4 - pbPtr;
 	uint64_t* pml4V = (uint64_t*)(kernmemPtr+physDiff);
 	pml4New = pml4V;
-	kprintf("New PML4 - pml4V %x\n",pml4V);
-	kprintf("New PML4 - pml4New %x\n",pml4V);
+//	kprintf("New PML4 - pml4V %x\n",pml4V);
+//	kprintf("New PML4 - pml4New %x\n",pml4V);
 	*(pml4V+511) = pdpePtr|0x7;	
 		
 	switchCr3((uint64_t)pml4);
@@ -74,9 +74,9 @@ void copyToPrcMem(uint64_t srcMem,uint64_t destMem,uint64_t size, uint64_t entry
 	enterVMAdetails(currentTask, srcMem,destMem,size,0);
 
 	//Entering Stack details
-	enterVMAdetails(currentTask, 0,0x401000,4096,1);
+	enterVMAdetails(currentTask, 0,0x00000000fffef000,4096*10,1);
 
-	printVMAdetails(currentTask);
+//	printVMAdetails(currentTask);
 
 	//This section deals with copying process memory
 	//This is a dummy function. It wont be required in future.
@@ -84,14 +84,14 @@ void copyToPrcMem(uint64_t srcMem,uint64_t destMem,uint64_t size, uint64_t entry
 	
 	//Here we copy bytes into the process memory. This will be done by the page-fault handler. Will incorporate this into Page-fault handler later.
 	copyBytes(srcMem, destMem,size);
-	kprintf("Memory copied\n");	
+//	kprintf("Memory copied\n");	
 	assignUserStack(currentTask,entry);
 //	switchToRing3(&task2);
 }
 
 void assignUserStack(struct task_struct* task,uint64_t entry){
 	//Assign stack pointer
-	task->rsp2 = 0x401ff0;
+	task->rsp2 = 0x00000000fffeff00;
 	task->start_rsp2= task->rsp2;
 	task->usrSpcIP = entry;	
 }

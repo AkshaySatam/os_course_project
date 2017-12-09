@@ -13,7 +13,7 @@ void yield2(){
 	switchCr3(currentTask->pml4P);
 	//TODO Flushing the TLB
 	flushTLB();
-
+	__asm__ volatile("swapgs\n":::);
 	context_switch(prev,currentTask);	
 }
 

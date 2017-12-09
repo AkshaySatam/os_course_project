@@ -2,14 +2,17 @@
 #include<sys/memoryallocator.h>
 
 void handlePageFault(){
-	uint64_t a;
+	uint64_t a,*aV;
 	uint64_t faultingAddress = getFaultingAddress();
-	kprintf("Faulting address:%x \n",faultingAddress);
+	kprintf("Faulting address:%x - Faulting Process: %d\n",faultingAddress, currentTask->pid);
 	if(isValidAddress(faultingAddress)){
 		if(cowBitSet(faultingAddress)){
-			//TODO you might need to kmalloc
-			a = (uint64_t) kmalloc(4096);
-			copyBytes((faultingAddress & 0xfffffffffffff000),(uint64_t)a,4096);
+			kprintf("COW bit set %d\n",currentTask->pid);
+			//TODO you might need to getFreePage
+			a = getFreePage();
+			aV = (uint64_t *) getVirtualAddressFromPhysical(a);
+			copyBytes((faultingAddress & 0xfffffffffffff000),(uint64_t)aV,4096);
+			mapVirtualAddressToGivenPhysicalAddr(faultingAddress & 0xfffffffffffff000,a);	
 		}else{
 			mapVirtualAddressToPhysical(faultingAddress);
 		}
@@ -22,7 +25,8 @@ void handlePageFault(){
 short cowBitSet(uint64_t addr){
 
 	//check if the 11th, 0th, 2nd bits are set or not
-	if(((0x0000000000000fff) & addr)==0x805){
+	//if(((0x0000000000000fff) & addr)==0x805){
+	if(((0x0000000000000805) & addr)==0x805){
 		return 1;
 	}
 		return 0;
@@ -45,7 +49,7 @@ short isValidAddress(uint64_t faultingAddress){
 }
 
 void mapVirtualAddressToPhysical(uint64_t faultingAddress){
-	kprintf("Faulting address needs to be mapped\n");
+//	kprintf("Faulting address needs to be mapped\n");
 	mapVirtualAddress(faultingAddress);
 	kprintf("Mapped the address %x\n",faultingAddress);
 }

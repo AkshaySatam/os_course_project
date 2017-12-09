@@ -58,6 +58,31 @@ int writeB (long fd,char buf[],long length ){
         return returnCode;
 }
 
+int readB (long fd,char buf[],long length){
+        uint64_t syscall_read = 0;
+        uint64_t returnCode=0;
+        char buffer[60];
+        copyString(buffer,buf,0,length);
+        uint64_t  buf_addr = (uint64_t) buffer;
+//      kprintf("data is %s\n", buffer);
+
+         __asm__ volatile (
+                        "movq %1, %%rax\n"
+                        "movq %2, %%rdi\n"
+                        "movq %3, %%rsi\n"
+                        "movq %4, %%rdx\n"
+                        "syscall\n"
+                        "movq %%rax, %0\n"
+                        : // output parameters, we aren't outputting anything, no none
+                        "=r" (returnCode)
+                        : // input parameters mapped to %0 and %1, repsectively
+                        "r" (syscall_read), "r" (fd), "r" (buf_addr),"r" (length)
+                        //, "m" (syscall_exit),"m" (exit_status)
+                        : // registers that we are "clobbering", unneeded since we are calling exit
+                        "rax", "rdi","rsi","rdx");
+        return returnCode;
+}
+
 int main(int argc, char* argv[]){
 /*	int a = 1;
 	int b= 2;
@@ -79,7 +104,7 @@ int main(int argc, char* argv[]){
 	char buf3[30] ={"Keep calm and believe"};	
         writeB(1,buf3,12);	
 	my_fork();
-        writeB(1,buf,12);
+        readB(1,buf,12);
 	while(1){
 
 	}
