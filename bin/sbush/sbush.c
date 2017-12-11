@@ -12,9 +12,12 @@
 #define PROT_EXEC	0x4     /* Page can be executed.  */
 #define MAP_ANONYMOUS	0x20    /* Don't use a file.  */
 
+char buffer[10][256];
+char *bufptr[10];
+
 void concatenateString(char dest[], const char* b,const char* c);
 int  compareStrings(const char* a,const char* b);
-void splitString(char* buffer [10],const char* input,char delimiter);
+void splitString(const char* input,char delimiter);
 int stringLength(const char* str);
 void copyString(char* dest,const char* src, int start, int end);
 
@@ -240,8 +243,8 @@ long my_execvpe(char* fileName,char* arg[],char* envp[]){
         //char* fullFileName[40];
         int length =stringLength(fileName)+5;
         char fullFileName[length];
-        concatenateString(fullFileName,"/bin/",fileName);
-        copyString(arg[0],fullFileName,0,length);
+     //   concatenateString(fullFileName,"bin/",fileName);
+        copyString(arg[0],fileName,0,length);
 //      printf("arg[0] %s\n",arg[0]);
 //      printf("Full file name: %s \n",fullFileName);
         unsigned long fName = (long) fullFileName;
@@ -306,48 +309,6 @@ void my_close(unsigned int oldFd){
 }
 
 
-/*char* concatenateString(char* a, char* b){
-	char *dest = (char*)malloc(sizeof(char)*(stringLength(a)+stringLength(b)+1));
-	int i=0,j=0;
-	while(*(a+i)!='\0'){
-		*(dest+i)=*(a+i);
-		i++;
-	}
-	
-	while(*(b+j)!='\0'){
-		*(dest+i+j)=*(b+j);
-		j++;
-	}
-	*(dest+i+j)='\0';
-	return dest;
-}
-*/
-/*
-void print(char* message){
-
-  unsigned long syscall_write = 1;
-  unsigned long syscall_exit = 60;
-  //char* message  = "Hello world\n";
-  long file_desc=1;
-  long  no_bytes=stringLength(message);
-  long  exit_status = 42;
-  __asm__ (	
-	"movq %0, %%rax\n"
-       	"movq %1, %%rdi\n"
-	"movq %2, %%rsi\n"
-	"movq %3, %%rdx\n"
-       	"syscall\n"
-//	"movq %4, %%rax\n"
-//	"xor %5,  %%rdi\n"
-//	"syscall"
-    : // output parameters, we aren't outputting anything, no none
-      // (none)
-    : // input parameters mapped to %0 and %1, repsectively 
-      "m" (syscall_write), "m" (file_desc), "m" (message),"m" (no_bytes),"m" (syscall_exit), "m" (exit_status)
-    : // registers that we are "clobbering", unneeded since we are calling exit
-      "rax", "rdi","rsi","rdx");
-}
-*/
 int  compareStrings(const char* a,const char* b){
 	//if(stringLength(a)==stringLength(b)){
 		int i=0;
@@ -363,12 +324,14 @@ int  compareStrings(const char* a,const char* b){
 }
 
 
-void splitString(char* buffer [10],const char* input,char delimiter){
+//char buffer[10][256];
+
+void splitString(/*char* buffer [10],*/const char* input,char delimiter){
 	int pos=0, start=0;
 	int count=0;
 	while((input[pos])!='\0'){
 		if(input[pos]==delimiter){
-			buffer[count]= (char *) malloc(((pos-start)+1)*sizeof(char));
+			//buffer[count]= (char *) malloc(((pos-start)+1)*sizeof(char));
 //			printf("Values of start: %d, pos: %d",start,pos); 
 			copyString(buffer[count],input,start,pos);
 //			printf("Tokenized string for pipe: %s\n",buffer[count]);
@@ -379,8 +342,10 @@ void splitString(char* buffer [10],const char* input,char delimiter){
 //		printf("Value of pos: %d",pos);
 	}
 //	printf("Values of start: %d, pos: %d",start,pos); 
-	buffer[count]= (char *) malloc(((pos-start)+1)*sizeof(char));
-	copyString(buffer[count],input,start,pos);
+//	buffer[count]= (char *) malloc(((pos-start)+1)*sizeof(char));
+	copyString(buffer[count++],input,start,pos);
+	bufptr[count] = NULL;
+
 //	printf("Tokenized string for pipe: %s\n",buffer[count]);
 //	printf("Tokenized srings: %s %s %s %s ",buffer[0],buffer[1],buffer[2],buffer[3]);
 }
@@ -419,7 +384,7 @@ void changeDirectory(char* inputArgs){
 	}  
 }
 
-void executeInAnotherProcess(char * argv[])
+void executeInAnotherProcess(char * envp[])
 {
 	//printf("\nExecuting ls\n");
 	int returnCode = my_fork();
@@ -429,9 +394,13 @@ void executeInAnotherProcess(char * argv[])
 	} 
 	else if (returnCode==0) {
 		//printf("This is child");
-		char* envp[]= {0};
+		//char* envp[]= {0};
 		//argv[0]="/bin/sh";
-		my_execvpe(argv[0],argv,envp);
+		my_write(1,bufptr[0]);
+		my_write(1,bufptr[1]);
+		my_write(1,bufptr[2]);
+
+		my_execvpe(bufptr[0], bufptr, envp);
 		//i = execve(argv[0],argv,envp);
 		//printf("Status of execve %d",i);
 		//printf("Child exiting");
@@ -507,7 +476,7 @@ void runInBackground(char* argv[10],char* envp[]){
 	}
 }
 
-void processInput(char *splittedInput[]){
+void processInput(char *splittedInput[],char* envp[]){
 	//printf("FIrst word of splitted input");
 	//printf("%s\n",splittedInput[0]);
 	if(splittedInput[1]!=NULL)
@@ -517,17 +486,17 @@ void processInput(char *splittedInput[]){
 			return;
 		}
 	} 
-	if(compareStrings("cd",splittedInput[0])==1) {
-		changeDirectory(splittedInput[1]);
+	if(compareStrings("cd",&buffer[0][0])==1) {
+		changeDirectory(&buffer[1][0]);
 	}
-	else if (compareStrings("ls",splittedInput[0])==1){
+	else if (compareStrings("ls",&buffer[0][0])==1){
 		//printf("Executing ls in another process");
-		executeInAnotherProcess(splittedInput);
+		executeInAnotherProcess(envp);
 	}
-	else if(compareStrings("sh",splittedInput[0])==1){
-		executeInAnotherProcess(splittedInput);
+	else if(compareStrings("sh",&buffer[0][0])==1){
+		executeInAnotherProcess(envp);
 	}
-	else if(compareStrings("export",splittedInput[0])==1){
+	else if(compareStrings("export",&buffer[0][0])==1){
 		//setEnvironmentVariables(splittedInput);
 	}
 	else {
@@ -537,7 +506,8 @@ void processInput(char *splittedInput[]){
 
 void scanInput(char* splittedInput[10],char* input,char delimiter)
 {
-	splitString(splittedInput,input,delimiter);	
+//	splitString(splittedInput,input,delimiter);	
+	splitString(input,delimiter);	
 }
 
 void displayPrompt()
@@ -546,16 +516,6 @@ void displayPrompt()
         my_write(1,prompt);
 }
 
-
-/*
-void freeMemory(char* input[]){
-	int i=0;
- 	const char* nullCharacter = "\0";
-	while(input[i]!=nullCharacter){
-		free(input[i++]);
-	}
-}
-*/
 
 int containsPipe(char* input){
 	int i=0;
@@ -582,12 +542,19 @@ int countPipes(char* input){
 	return count;
 }
 
+#if 0
 void implementPipe(char* input){
 	//	printf("In pipe impl\n");
 	int count = countPipes(input);
 	//	printf("Number of pipes: %d\n",count);
 	char* commands [10];
-	splitString(commands,input,'|');
+	{
+		int bufcount =0;
+		for(bufcount = 0; bufcount < 10; bufcount++)
+			commands[bufcount] = &buffer[bufcount][0];
+	}
+
+	splitString(input,'|');
 	int i=0;
 
 	while(count>0)
@@ -630,6 +597,7 @@ void implementPipe(char* input){
 	char* envp[]= {0};
 	my_execvpe(argv[0],argv,envp);
 }
+#endif
 
 int writeB (long fd,char buf[],long length ){
         uint64_t syscall_write = 1;
@@ -656,45 +624,38 @@ int writeB (long fd,char buf[],long length ){
         return returnCode;
 }
 
-void testSyscall(){
-//      __asm__ volatile("syscall\n");
-//      kprintf("Back in user space\n");
-	char buf[30] =  {"Shree Ganesh"};
-        writeB(1,buf,12);
-//      kprintf("Thank you\n");
-//      kprintf("Back in user space\n");
-     //   buf = "Om Namah Shivay";
-      //  writeB(1,buf,20);
-       // buf = "Keep calm";
-      //  writeB(1,buf,20);
-       // buf = "and believe";
-      //  writeB(1,buf,12);
-	while(1);
-}
-
 int main(int argc, char *argv[], char *envp[]) {
 	prompt = "$";
 	
-/*	char  inputBuffer[20];
+	char  inputBuffer[20];
 	char* splittedInput[10];
+	
+	int bufc;
+	for(bufc = 0; bufc < 10; bufc++)
+	{
+		splittedInput[bufc] = &buffer[bufc][0];
+		//bufptr = &buffer[bufc][0];
+		bufptr[bufc] = &buffer[bufc][0];
+	}
+	
 	char spaceDelimiter = ' ';
-	int hasPipe;
+	//int hasPipe;
 	while(1)
 	{  	
 		displayPrompt();    
 		readInput(inputBuffer);
 		initializeStringArray(splittedInput);
-		hasPipe = containsPipe(inputBuffer);
-		if(hasPipe==1){
-			implementPipe(inputBuffer);
-		}else{
+		//hasPipe = containsPipe(inputBuffer);
+	//	if(hasPipe==1){
+	//		implementPipe(inputBuffer);
+	//	}else{
 			scanInput(splittedInput,inputBuffer,spaceDelimiter);
 			addNullAtTheEnd(splittedInput);
-			processInput(splittedInput);
-		}
+			processInput(splittedInput, envp);
+	//	}
 	}
 	//freeMemory(splittedInput);
-*/	
+	
 	char buf[30] =  {"Shree Ganesh"};
         writeB(1,buf,12);
 	return 0;

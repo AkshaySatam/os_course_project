@@ -93,8 +93,8 @@ void test(){
 
 void test3(){
 	uint64_t tarFsHdr, elfHdr;
-//	char c[11] = {'b','i','n','/','s','b','u','s','h'};
-	char c[11] = {'b','i','n','/','h','e','l','l','o'};
+	char c[11] = {'b','i','n','/','s','b','u','s','h'};
+//	char c[11] = {'b','i','n','/','h','e','l','l','o'};
 	tarFsHdr = searchTarfs(c);
 	elfHdr = tarFsHdr+512;
 	kprintf("ELF Header %x",elfHdr);

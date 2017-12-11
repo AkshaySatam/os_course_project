@@ -1,7 +1,7 @@
 #include<sys/fileDescriptor.h>
 #include<sys/kprintf.h>
 #include<sys/tarfsOps.h>
-
+/*
 int fd_num = 3;
 
 struct file_descriptor
@@ -70,5 +70,5 @@ int getFdNum()
 }
 
 
-
+*/
 

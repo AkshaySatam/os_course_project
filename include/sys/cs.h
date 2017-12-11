@@ -26,7 +26,7 @@ struct task_struct{
 	uint64_t rsp_dummy;
 	uint64_t kstack[512];
 	uint64_t ustack[512];
-	struct file_descriptor fdArr[128];
+//	struct file_descriptor fdArr[128];
 	enum process_state state;
 	struct vma* vmaList;
 	struct vma* vlHead;
