@@ -244,10 +244,25 @@ void sys_read (){
      //   kprintf("%s\n",buffer);
 }
 
+void sys_open(){
+
+}
+
+void sys_close(){
+
+}
+
+void sys_sleep(){
+
+}
+
 void (*sysCallPtr[50]) (void)={
 	[0]=sys_read,
 	[1]=sys_write,
-	[2]=sys_fork
+	[2]=sys_fork,
+	[3]=sys_sleep,
+	[4]=sys_open,
+	[5]=sys_close
 };
 
 void sys_fork(){

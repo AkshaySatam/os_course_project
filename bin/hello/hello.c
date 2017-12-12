@@ -13,6 +13,9 @@ void splitString(const char* input,char delimiter);
 void initializeStringArray(char* splittedInput[]);
 void processInput(char *splittedInput[],char* envp[]);
 void addNullAtTheEnd(char* argv []);
+void clearBuffer(char* c);
+void cat(char* fileName);
+void sleep(char* time);
 
 char buffer[10][256];
 char *bufptr[10];
@@ -33,7 +36,6 @@ void copyString(char* dest,const char* src, int start, int end){
 
         *(dest+start)='\0';
 }
-
 
 int write (long fd,char buf[],long length ){
         uint64_t syscall_write = 1;
@@ -80,7 +82,6 @@ int read(long input_file_desc,char buf[],long buf_size){
 			"rax", "rdi","rdx","rsi");
 	return ret;
 }
-
 
 int main(int argc, char* argv[],char* envp[]){
 	prompt = "$";
@@ -129,6 +130,42 @@ void addNullAtTheEnd(char* argv []){
         argv[i]=NULL;
 }
 
+void clearBuffer(char* c){
+	while(*c!='\0'){
+		*c++='\0';
+	}
+}
+
+void sleep(char* time){
+	
+	//TODO Will change the sys_cal number later
+        uint64_t syscall_sleep = 3;
+       // uint64_t returnCode=0;
+        uint64_t buf_addr = (uint64_t)time;
+	//kprintf("data is %s\n", buffer);
+
+         __asm__ volatile (
+                        "movq %0, %%rax\n"
+                        "movq %1, %%rdi\n"
+                        "syscall\n"
+        //                "movq %%rax, %0\n"
+                        : // output parameters, we aren't outputting anything, no none
+                       // "=r" (returnCode)
+                        : // input parameters mapped to %0 and %1, repsectively
+                        "r" (syscall_sleep), "r"(buf_addr)
+                        //, "m" (syscall_exit),"m" (exit_status)
+                        : // registers that we are "clobbering", unneeded since we are calling exit
+                        "rax", "rdi");
+      //  return returnCode;
+}
+
+void cat(char* fileName){
+	//open the file
+	//read it
+	//write to stdout
+	//close the file
+}
+
 void processInput(char *splittedInput[],char* envp[]){
         //printf("FIrst word of splitted input");
         //printf("%s\n",splittedInput[0]);
@@ -141,7 +178,19 @@ void processInput(char *splittedInput[],char* envp[]){
         }
         if(compareStrings("echo",&buffer[0][0])==1) {
                 write(1,&buffer[1][0],stringLength(&buffer[1][0]));
+		clearBuffer(&buffer[1][0]);
+		clearBuffer(&buffer[0][0]);
         }
+        if(compareStrings("sleep",&buffer[0][0])==1) {
+		sleep(&buffer[1][0]);    
+   	}
+	if(compareStrings("cat",&buffer[0][0])){
+		cat(&buffer[1][0]);	
+	}
+/*	if(compareStrings("ls",&buffer[0][0])){
+		ls(buffer[1][0]);	
+	}
+*/	
 	/*
         if(compareStrings("cd",&buffer[0][0])==1) {
                 changeDirectory(&buffer[1][0]);
