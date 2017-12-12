@@ -13,19 +13,21 @@ void parseElf(uint64_t startAddress){
 
 	pHdr = (Elf64_Phdr*) (p + (e->e_phoff/8));
 	kprintf("No of pg hdr %d\n",e->e_phnum);
+	
+	processPreloading(e->e_entry);
 	for(int i =0;i< e->e_phnum;i++){
 		program = &pHdr[i];
 //		kprintf("Program header type %x\n",program->p_type);
-//		kprintf("Program header vaddr %x\n",program->p_vaddr);
+		kprintf("Program header vaddr %x\n",program->p_vaddr);
 //		kprintf("Program header paddr %x\n",program->p_paddr);
 //		kprintf("Program header filesz %d\n",program->p_filesz);
 //		kprintf("Program header memsz  %d\n",program->p_memsz);
-//		kprintf("Program header offset  %d\n",program->p_offset);
+		kprintf("Program header offset  %d\n",program->p_offset);
 //		kprintf("Program entry point %x\n",e->e_entry);
-		if(program->p_type==1){
-			copyToPrcMem((uint64_t)p+program->p_offset,program->p_vaddr,program->p_memsz,e->e_entry);
-		break;
-		}
+//		if(program->p_type==1){
+		copyToPrcMem((uint64_t)p+program->p_offset,program->p_vaddr,program->p_memsz,e->e_entry);
+//		break;
+//		}
 	}
 }
 

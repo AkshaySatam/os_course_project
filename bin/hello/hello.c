@@ -1,6 +1,25 @@
 #include<stdio.h>
 #include<sys/defs.h>
 
+
+void readInput(char* inputBuffer);
+int write (long fd,char buf[],long length );
+void displayPrompt();
+void copyString(char* dest,const char* src, int start, int end);
+int read (long fd,char buf[],long length);
+int stringLength(const char* str);
+
+
+char buffer[10][256];
+char *bufptr[10];
+char* prompt;
+
+void displayPrompt()
+{
+        write(1,prompt,1);
+}
+
+
 void copyString(char* dest,const char* src, int start, int end){
         while(start < end){
                 *dest = *(src+start);
@@ -11,29 +30,8 @@ void copyString(char* dest,const char* src, int start, int end){
         *(dest+start)='\0';
 }
 
-long my_fork(){
-//      printf("Calling myfork");
-        //  unsigned long syscall_write = 1;
-	//TODO changing the syscall fork to 2 instead of original 57
-        unsigned long syscall_fork = 2;//char* message  = "Hello world\n";
-        long ret;
-        __asm__ volatile (
-                        "movq %1, %%rax\n"
-                        "syscall\n"
-                        "movq %%rax, %0"
-                        : // output parameters, we aren't outputting anything, no none
-                        "=r" (ret)
-                        : // input parameters mapped to %0 and %1, repsectively
-                        "r" (syscall_fork)
-                        : // registers that we are "clobbering", unneeded since we are calling exit
-                        "rax");
-        //      printf("%s\n",buf);
-        //              printf("Done\n");
-        return ret;
-}
 
-
-int writeB (long fd,char buf[],long length ){
+int write (long fd,char buf[],long length ){
         uint64_t syscall_write = 1;
         uint64_t returnCode=0;
         char buffer[60];
@@ -58,13 +56,12 @@ int writeB (long fd,char buf[],long length ){
         return returnCode;
 }
 
-int readB (long fd,char buf[],long length){
+int read (long fd,char buf[],long length){
         uint64_t syscall_read = 0;
         uint64_t returnCode=0;
         char buffer[60];
         copyString(buffer,buf,0,length);
         uint64_t  buf_addr = (uint64_t) buffer;
-//      kprintf("data is %s\n", buffer);
 
          __asm__ volatile (
                         "movq %1, %%rax\n"
@@ -84,34 +81,63 @@ int readB (long fd,char buf[],long length){
 }
 
 int main(int argc, char* argv[]){
-/*	int a = 1;
-	int b= 2;
-	int c = 3;
-	char* p = (char *)0xffffffff800b8000;
+	prompt = "$";
 
-	for(int i=0;i<20;i=i+2)
-		*(p+i) = i;
+        char  inputBuffer[20];
+      /*  char* splittedInput[10];
 
-	if(a == 1 && b == 2 && c==3){
-		int d = 4;
-		if(d){}
+        int bufc;
+        for(bufc = 0; bufc < 10; bufc++)
+        {
+                splittedInput[bufc] = &buffer[bufc][0];
+                bufptr[bufc] = &buffer[bufc][0];
+        }
+	*/
+        //char spaceDelimiter = ' ';
+        while(1)
+        {
+                displayPrompt();
+		readInput(inputBuffer);
+		write(1,inputBuffer,stringLength(inputBuffer));
 	}
-*/	
+
+}
+
+int stringLength(const char* str){
+        int i=0;
+        int count=0;
+        while(*(str+i)!='\0'){
+                count++;
+                i++;
+        }
+        return count;
+}
+
+void readInput(char* inputBuffer){
+        int j=0,i=0;
+        char  buffer[512];
+        read(0,buffer,512);
+        while(buffer[j]!='\n')
+        {
+                inputBuffer[i++]=buffer[j++];
+        }
+        inputBuffer[i]='\0';
+}
+
+/*
 	char buf[30] =  {"Shree Ganesh"};
-        writeB(1,buf,12);
+        write(1,buf,12);
 	char buf2[30] ={"Om Namah Shivay"};	
-        writeB(1,buf2,12);	
+        write(1,buf2,12);	
 	char buf3[30] ={"Keep calm and believe"};	
-        writeB(1,buf3,12);	
+        write(1,buf3,12);	
 	my_fork();
-        readB(1,buf,12);
+        read(1,buf,12);
 	char buf4[30] ={"Yes... you can"};	
 
         writeB(1,buf4,12);	
 	while(1){
 
 	}
-}
 
-
-
+*/

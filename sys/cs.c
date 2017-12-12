@@ -69,7 +69,7 @@ void initializeVMA(struct task_struct* t){
 
 void usrPrFn(){
 	kprintf("In user process\n");
-	testSyscall();
+//	testSyscall();
 	kprintf("Back in user thread\n");
 	//TODO this while (1) is a hack. need to investigate why this is not working
 	while(1);
@@ -93,8 +93,8 @@ void test(){
 
 void test3(){
 	uint64_t tarFsHdr, elfHdr;
-	char c[11] = {'b','i','n','/','s','b','u','s','h'};
-//	char c[11] = {'b','i','n','/','h','e','l','l','o'};
+	//char c[11] = {'b','i','n','/','s','b','u','s','h'};
+	char c[11] = {'b','i','n','/','h','e','l','l','o'};
 	tarFsHdr = searchTarfs(c);
 	elfHdr = tarFsHdr+512;
 	kprintf("ELF Header %x",elfHdr);

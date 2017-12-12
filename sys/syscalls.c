@@ -17,31 +17,6 @@ void copyString(char* dest,const char* src, int start, int end){
         *(dest+start)='\0';
 }
 
-int writeB (uint64_t fd, char* buf, uint64_t length){
-	uint64_t syscall_write = 1;
-	uint64_t returnCode=0;
-        char buffer[60];
-        copyString(buffer,buf,0,length);
-	uint64_t  buf_addr = (uint64_t) buffer;
-//	kprintf("data is %s\n", buffer);
-
-	 __asm__ volatile (
-                        "movq %1, %%rax\n"
-                        "movq %2, %%rdi\n"
-                        "movq %3, %%rsi\n"
-                        "movq %4, %%rdx\n"
-                        "syscall\n"
-                        "movq %%rax, %0\n"
-                        : // output parameters, we aren't outputting anything, no none
-                        "=r" (returnCode)
-                        : // input parameters mapped to %0 and %1, repsectively
-                        "r" (syscall_write), "r" (fd), "r" (buf_addr),"r" (length)
-                        //, "m" (syscall_exit),"m" (exit_status)
-                        : // registers that we are "clobbering", unneeded since we are calling exit
-                        "rax", "rdi","rsi","rdx");
-	return returnCode;
-}
-
 void setupMSRs(){
 	buf =  (char*) kmalloc(4096);
 	syscallHndPtr = (uint64_t)&syscallHandler;
@@ -117,22 +92,6 @@ void setupMSRs(){
 void setKernGSBase(uint32_t msr, uint32_t hi,uint32_t lo){
 	__asm__ volatile("wrmsr" : : "a"(lo), "d"(hi), "c"(msr));	
 }
-
-void testSyscall(){
-//	__asm__ volatile("syscall\n");		
-//	kprintf("Back in user space\n");
-	buf = "Shree Ganesh";
-	writeB(1,buf,12);
-//	kprintf("Thank you\n");
-//	kprintf("Back in user space\n");
-	buf = "Om Namah Shivay";
-	writeB(1,buf,20);
-	buf = "Keep calm";
-	writeB(1,buf,20);
-	buf = "and believe";
-	writeB(1,buf,12);
-}
-
 
 uint32_t getLowerHalf(uint64_t num){
 	uint32_t lo;
@@ -223,11 +182,6 @@ void syscallHandler(){
 //	while(1);	
 }
 
-/*int callWrite(char* fd,char* buf, uint64_t length){
-	kprintf("You are in CallWrite\n");
-	return 0;
-}*/
-
 void sys_write (){
 
 	//kprintf("You are in sys_write\n");
@@ -243,7 +197,7 @@ void sys_write (){
 	::"rax","rdi","rsi","rdx");
 
 //	kprintf("FD: %d\n",fd);
-	kprintf("Buffer value %s\n",buffer);
+	kprintf("%s",buffer);
 //	kprintf("Length: %d\n",length);
 //	yield2();
 }
@@ -265,12 +219,6 @@ void sys_fork(){
 //	yield2();
 }
 
-/*
-struct task_struct createNewProcess(){
-	struct task_struct s;
-	return s;
-}
-*/
 void copyPCBContents(){
 	struct vma* vl = currentTask->vmaList;
 	uint64_t vmaCount = currentTask->vmaCount;

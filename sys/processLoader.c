@@ -47,46 +47,28 @@ void dummy(uint64_t addr){
 	//	*(pteP+pteOff) = stackAdd|0x7;	
 }
 
-void copyToPrcMem(uint64_t srcMem,uint64_t destMem,uint64_t size, uint64_t entry){
+void processPreloading(uint64_t entry){
 
-	//This section deals with switching CP3
 	uint64_t pml4 = (uint64_t) getFreePage();
 	uint64_t physDiff = pml4 - pbPtr;
 	uint64_t* pml4V = (uint64_t*)(kernmemPtr+physDiff);
 	pml4New = pml4V;
-//	kprintf("New PML4 - pml4V %x\n",pml4V);
-//	kprintf("New PML4 - pml4New %x\n",pml4V);
 	*(pml4V+511) = pdpePtr|0x7;	
-		
 	switchCr3((uint64_t)pml4);
 
-	//This section deals with entering VMA details
-	//TODO hardcoded for time being	
-	//currentTask = &task2;
-//	currentTask->vmaCount=0;
 	currentTask->pml4 = (uint64_t)pml4V;
 	currentTask->pml4P = pml4;
 
-	//Initialize process VMA
-//	initializeVMA(currentTask);
-	
-	//Entering file details	
-	enterVMAdetails(currentTask, srcMem,destMem,size,0);
-
 	//Entering Stack details
 	enterVMAdetails(currentTask, 0,0x00000000fffef000,4096*10,1);
+	assignUserStack(currentTask,entry);
+}
 
+void copyToPrcMem(uint64_t srcMem,uint64_t destMem,uint64_t size, uint64_t entry){
+	enterVMAdetails(currentTask, srcMem,destMem,size,0);
 //	printVMAdetails(currentTask);
-
-	//This section deals with copying process memory
-	//This is a dummy function. It wont be required in future.
-//	dummy(destMem);
-	
 	//TODO Here we copy bytes into the process memory. This will be done by the page-fault handler. Will incorporate this into Page-fault handler later.
 	copyBytes(srcMem, destMem,size);
-//	kprintf("Memory copied\n");	
-	assignUserStack(currentTask,entry);
-//	switchToRing3(&task2);
 }
 
 void assignUserStack(struct task_struct* task,uint64_t entry){
