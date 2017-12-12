@@ -253,8 +253,16 @@ void sys_close(){
 }
 
 void sys_sleep(){
-
+        char* buffer;
+        __asm__ volatile (
+        "movq %%rdi,%0\n"
+        :"=m"(buffer)
+        ::"rax","rdi");
+	
+	kprintf("Sleep time: %s",buffer);	
 }
+
+
 
 void (*sysCallPtr[50]) (void)={
 	[0]=sys_read,

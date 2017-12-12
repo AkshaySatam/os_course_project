@@ -82,7 +82,7 @@ int read(long input_file_desc,char buf[],long buf_size){
 			"rax", "rdi","rdx","rsi");
 	return ret;
 }
-
+/*
 int main(int argc, char* argv[],char* envp[]){
 	prompt = "$";
 
@@ -108,7 +108,7 @@ int main(int argc, char* argv[],char* envp[]){
 	}
 
 }
-
+*/
 int compareStrings(const char* a,const char* b){
                 int i=0;
                 while(*(a+i)!='\0'){
