@@ -5,6 +5,7 @@
 #include<sys/processLoader.h>
 #include<sys/cs.h>
 #include<sys/scheduler.h>
+#include<sys/timer.h>
 
 
 void updateRAX(uint64_t* add , uint64_t value);
@@ -35,4 +36,6 @@ void testSyscall();
 void test4();
 void setKernGSBase(uint32_t msr,uint32_t hi,uint32_t lo);
 int callWrite();
+int atoi(char *str);
+
 #endif

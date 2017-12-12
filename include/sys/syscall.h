@@ -56,6 +56,5 @@ int sys_killprocess(uint64_t pid);
 //int sys_catfiles(char *path,int pipe);
 //int sys_echofiles(char *path,int pipe);
 
-
 #endif
 

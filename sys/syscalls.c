@@ -258,11 +258,32 @@ void sys_sleep(){
         "movq %%rdi,%0\n"
         :"=m"(buffer)
         ::"rax","rdi");
-	
+
+	int startTime = currentTime;
+	int sleepTime = (int)(atoi(buffer)/1000);
+	uint64_t l =0;
+
+	while(1){
+		if(currentTime >= (startTime + sleepTime)){
+			break;
+		}
+	}	
 	kprintf("Sleep time: %s",buffer);	
+
+        __asm__ volatile (
+        "movq %0,%%rax\n"
+        :"=r"(l)::);
 }
 
-
+int atoi(char *str)
+{
+    int res = 0;
+  
+    for (int i = 0; str[i] != '\0'; ++i)
+        res = res*10 + str[i] - '0';
+  
+    return res;
+}
 
 void (*sysCallPtr[50]) (void)={
 	[0]=sys_read,

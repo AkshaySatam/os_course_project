@@ -1,13 +1,13 @@
 #include<sys/defs.h>
 #include<sys/interrupts.h>
 #include<sys/kprintf.h>
-
-
+#include<sys/timer.h>
+/*
 int timer_ticks = 0;
-int currentTime=0;
+volatile int currentTime=0;
 
 int bottomColour = 7;
-
+*/
 
 char *convert2(unsigned long num, int base)
 {
@@ -42,6 +42,11 @@ void tick_timer(struct isr_regs *r)
 }
 void install_timer()
 {
+
+	timer_ticks = 0;
+	currentTime=0;
+
+	bottomColour = 7;
 
 	uint16_t TIMER_frequency = 1193180/100;
 
