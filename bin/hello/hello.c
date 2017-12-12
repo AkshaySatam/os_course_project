@@ -139,6 +139,9 @@ void processInput(char *splittedInput[],char* envp[]){
                         return;
                 }
         }
+        if(compareStrings("echo",&buffer[0][0])==1) {
+                write(1,&buffer[1][0],stringLength(&buffer[1][0]));
+        }
 	/*
         if(compareStrings("cd",&buffer[0][0])==1) {
                 changeDirectory(&buffer[1][0]);
