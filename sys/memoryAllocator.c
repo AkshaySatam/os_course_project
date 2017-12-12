@@ -254,7 +254,7 @@ void initializeMemory (uint64_t totalMemory, uint64_t* startIndices, uint64_t*  
 //	kprintf("Paging done\n");
 	remapNextPointers((uint64_t) physbase,kernmem,(uint64_t)physfree,(uint64_t)newPhysfree);
 //	testPageDescriptor((uint64_t)physfree-(uint64_t)physbase,kernmem);
-	testKmalloc();
+//	testKmalloc();
 }
 
 

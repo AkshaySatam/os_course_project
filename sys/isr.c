@@ -3,8 +3,11 @@
 #include <sys/string.h>
 #include <sys/kprintf.h>
 #include <sys/pageFaultHandler.h>
+#include <sys/syscalls.h>
 
 #define KERNEL_STACK_SIZE 4096
+
+char *sys_read_buffer;
 
 extern void timer_int();
 extern void keyboard_int();
@@ -158,6 +161,7 @@ void kbInt_handler(struct isr_regs *reg)
 {
 //	kprintf("In Keyboard Interrupt_Handler\n");
 	unsigned char scancode;
+	char c;
 
 	scancode = inb(0x60);
 
@@ -184,10 +188,13 @@ void kbInt_handler(struct isr_regs *reg)
 		if(shiftFlag==0){
 			//	kprintf("%c",kbdus[scancode]);
 			*glyphPtr = kbdus[scancode];
+			 c = kbdus[scancode];
 		}else{
 			//	kprintf("%c",kbdus_Shift[scancode]);}
 			*glyphPtr = kbdus_Shift[scancode];
+			 c = kbdus_Shift[scancode];
 	}
+	 term_write(c);	
 	*(glyphPtr+1)=7;
 	}else
 	{	

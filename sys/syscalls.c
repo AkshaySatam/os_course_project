@@ -1,6 +1,8 @@
 #include<sys/kprintf.h>
 #include<sys/syscalls.h>
 #include<sys/cs.h>
+#include <sys/interrupts.h>
+
 //typedef void (*sys_call_ptr_t)(void);
 extern void setRFlags(uint64_t rflags);
 extern void loadKStack(struct task_struct* currentTask);
@@ -203,8 +205,43 @@ void sys_write (){
 }
 
 void sys_read (){
-	kprintf("Exiting Read\n");
-	yield2();
+ //	kprintf("In sys_read\n");
+	
+        char* buffer;
+        uint64_t fd, length;
+        __asm__ volatile (
+        "movq %%rdi,%0\n"
+        "movq %%rsi,%1\n"
+        "movq %%rdx,%2\n"
+        :"=m"(fd),"=m"(buffer),"=m"(length)
+        ::"rax","rdi","rsi","rdx");
+
+	//kprintf("FD %d\n",fd);
+	//kprintf("Buffer %s\n",buffer);
+	//kprintf("length %d\n",length);
+
+	
+	
+        //Declare this ptr in term.c and access here.
+        while(1){
+	//	kprintf("In while - sys_read\n");
+                if(valid[read_ptr] == 1){
+		//	kprintf("is Valid");
+                        break;
+                }
+        }
+        //kprintf("%d",read_ptr);
+        term_read(buffer,read_ptr,length);
+
+	
+   	//kprintf("Out of term_read\n");
+        __asm__ volatile (
+        "movq %0,%%rax\n"
+        :"=r"(length)::);
+   	//kprintf("Out of sys_read\n");
+
+		
+     //   kprintf("%s\n",buffer);
 }
 
 void (*sysCallPtr[50]) (void)={
@@ -215,7 +252,7 @@ void (*sysCallPtr[50]) (void)={
 
 void sys_fork(){
 	copyCurrentProcessIntoAnother();
-	kprintf("Exiting fork : PCB number - %d \n",currentTask->pid);
+//	kprintf("Exiting fork : PCB number - %d \n",currentTask->pid);
 //	yield2();
 }
 

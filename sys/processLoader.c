@@ -112,7 +112,7 @@ void copyBytesReverse(uint64_t src, uint64_t dest, uint64_t size){
 
 
 void printVMAdetails(struct task_struct* currentTask){
-	kprintf("Start V Address %x",currentTask->vmaList->startVAddress);
+//	kprintf("Start V Address %x",currentTask->vmaList->startVAddress);
 }
 
 void enterVMAdetails(struct task_struct* currentTask, uint64_t srcMem, uint64_t destMem,uint64_t size, uint64_t type){

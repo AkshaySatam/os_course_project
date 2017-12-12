@@ -4,10 +4,10 @@
 void handlePageFault(){
 	uint64_t a,*aV;
 	uint64_t faultingAddress = getFaultingAddress();
-	kprintf("Faulting address:%x - Faulting Process: %d\n",faultingAddress, currentTask->pid);
+//	kprintf("Faulting address:%x - Faulting Process: %d\n",faultingAddress, currentTask->pid);
 	if(isValidAddress(faultingAddress)!=-1){
 		if(cowBitSet(faultingAddress)){
-			kprintf("COW bit set %d\n",currentTask->pid);
+//			kprintf("COW bit set %d\n",currentTask->pid);
 			//TODO you might need to getFreePage
 			a = getFreePage();
 			aV = (uint64_t *) getVirtualAddressFromPhysical(a);
@@ -17,7 +17,7 @@ void handlePageFault(){
 			mapVirtualAddressToPhysical(faultingAddress);
 		}
 	}else{
-		kprintf("Address not mapped in VMA List\n");
+//		kprintf("Address not mapped in VMA List\n");
 		while(1);
 	}
 }
@@ -52,7 +52,7 @@ short isValidAddress(uint64_t faultingAddress){
 void mapVirtualAddressToPhysical(uint64_t faultingAddress){
 //	kprintf("Faulting address needs to be mapped\n");
 	mapVirtualAddress(faultingAddress);
-	kprintf("Mapped the address %x\n",faultingAddress);
+//	kprintf("Mapped the address %x\n",faultingAddress);
 }
 
 uint64_t getFaultingAddress(){

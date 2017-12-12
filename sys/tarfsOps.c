@@ -11,9 +11,9 @@ uint64_t searchTarfs(char* fName){
 
 	while((uint64_t)t < (uint64_t) &_binary_tarfs_end){
 		if(compareStrings(fName,t->name)){
-			kprintf("File name: %s \n",t->name);	
+//			kprintf("File name: %s \n",t->name);	
 			size = decodeTarOctal((unsigned char*)(t->size),sizeof(t->size)/sizeof(char));
-			kprintf("File size: %d\n",size);
+//			kprintf("File size: %d\n",size);
 			//		kprintf("File uid: %s\n",t->uid);	
 			//		kprintf("File uname: %s\n",t->uname);	
 			//		kprintf("File version: %s\n",t->version);	
@@ -29,7 +29,7 @@ uint64_t searchTarfs(char* fName){
 		}
 		t = (struct posix_header_ustar* )((uint64_t) t + size + 512);
 	}
-	kprintf("File not found\n");
+//	kprintf("File not found\n");
 	return -1;
 }
 
@@ -57,9 +57,9 @@ void parseTarfs(){
 //	uint64_t totalPayload=0;
 	while((uint64_t)t < (uint64_t) &_binary_tarfs_end){
 //		kprintf("Traversing tarfs %x \n",t);
-		kprintf("File name: %s \n",t->name);	
+//		kprintf("File name: %s \n",t->name);	
 		size = decodeTarOctal((unsigned char*)(t->size),sizeof(t->size)/sizeof(char));
-		kprintf("File size: %d\n",size);
+//		kprintf("File size: %d\n",size);
 //		kprintf("File uid: %s\n",t->uid);	
 //		kprintf("File uname: %s\n",t->uname);	
 //		kprintf("File version: %s\n",t->version);	
@@ -72,9 +72,9 @@ void parseTarfs(){
 			n = (uint64_t)(size / 512);
 			size = (n*512)+512; 	
 		}
-		kprintf("New size %d \n",size);
+//		kprintf("New size %d \n",size);
 		t = (struct posix_header_ustar* )((uint64_t) t + size + 512);
-		kprintf("t: %x \n",t);
+//		kprintf("t: %x \n",t);
 	}
 }
 

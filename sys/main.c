@@ -83,8 +83,8 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 
 
 //	kprintf("Total memory (int) %d\n",totalMemory);
-	kprintf("physfree %p\n", (uint64_t)physfree);
-	kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
+//	kprintf("physfree %p\n", (uint64_t)physfree);
+//	kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
 //	kprintf("Kernmem %x\n",(uint64_t)&kernmem);
 //	mapKernel((uint64_t) &kernmem);
 //	checkAllBuses();

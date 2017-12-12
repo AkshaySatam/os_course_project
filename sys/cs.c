@@ -85,9 +85,9 @@ void test(){
 		}
 	}*/
 	while(1){
-		kprintf("Exiting thread 1\n");
+//		kprintf("Exiting thread 1\n");
 		yield2();
-		kprintf("Entering thread 1\n");
+//		kprintf("Entering thread 1\n");
 	}
 }
 
@@ -97,7 +97,7 @@ void test3(){
 	char c[11] = {'b','i','n','/','h','e','l','l','o'};
 	tarFsHdr = searchTarfs(c);
 	elfHdr = tarFsHdr+512;
-	kprintf("ELF Header %x",elfHdr);
+//	kprintf("ELF Header %x",elfHdr);
 	parseElf(elfHdr);
 	switchToRing3(currentTask);
 	/*
