@@ -8,10 +8,10 @@ void displayPrompt();
 void copyString(char* dest,const char* src, int start, int end);
 int read (long fd,char buf[],long length);
 int stringLength(const char* str);
-void scanInput(char* splittedInput[10],char* input,char delimiter);
+void scanInput(char* input,char delimiter);
 void splitString(const char* input,char delimiter);
 void initializeStringArray(char* splittedInput[]);
-void processInput(char *splittedInput[],char* envp[]);
+void processInput(char* envp[]);
 void addNullAtTheEnd(char* argv []);
 void clearBuffer(char* c);
 void cat(char* fileName);
@@ -72,13 +72,14 @@ int close(uint64_t fd){
 }
 
 void copyString(char* dest,const char* src, int start, int end){
+	int i =0;
         while(start < end){
-                *dest = *(src+start);
-                dest++;
+                *(dest+i) = *(src+start);
+                i++;
                 start++;
         }
 
-        *(dest+start)='\0';
+        *(dest+i)='\0';
 }
 
 int write (long fd,char buf[],long length ){
@@ -129,12 +130,9 @@ int read(long input_file_desc,char buf[],long buf_size){
 int main(int argc, char* argv[],char* envp[]){
 	prompt = "$";
 
-        char* splittedInput[10];
-
         int bufc;
         for(bufc = 0; bufc < 10; bufc++)
         {
-                splittedInput[bufc] = &buffer[bufc][0];
                 bufptr[bufc] = &buffer[bufc][0];
         }
 	
@@ -143,11 +141,8 @@ int main(int argc, char* argv[],char* envp[]){
         {
                 displayPrompt();
 		readInput();
-	//	write(1,inputBuffer,stringLength(inputBuffer));
-		initializeStringArray(splittedInput);
-                scanInput(splittedInput,inputBuffer,spaceDelimiter);
-		addNullAtTheEnd(splittedInput);
-                processInput(splittedInput, envp);
+                scanInput(inputBuffer,spaceDelimiter);
+                processInput(envp);
 	}
 
 }
@@ -214,55 +209,48 @@ void ps(){
 
 }
 
-void processInput(char *splittedInput[],char* envp[]){
-        //printf("FIrst word of splitted input");
-        //printf("%s\n",splittedInput[0]);
-        if(splittedInput[1]!=NULL)
-        {
-                if(compareStrings("&",splittedInput[1])==1) {
-                        //runInBackground(splittedInput);
-                        return;
-                }
-        }
+void processInput(char* envp[]){
+	int l;
         if(compareStrings("echo",&buffer[0][0])==1) {
-                write(1,&buffer[1][0],stringLength(&buffer[1][0]));
+		l = stringLength(&buffer[1][0]);
+                write(1,&buffer[1][0],l);
 		clearBuffer(&buffer[1][0]);
 		clearBuffer(&buffer[0][0]);
+		return;
         }
         if(compareStrings("sleep",&buffer[0][0])==1) {
-		sleep(&buffer[1][0]);    
+		
+		int i =0;
+		while(buffer[1][i]!='\n'){
+			i++;
+		}
+		buffer[1][i]='\0';
+	
+		sleep(&buffer[1][0]);
+		clearBuffer(&buffer[1][0]);
+		clearBuffer(&buffer[0][0]);
+		return;    
    	}
 	if(compareStrings("cat",&buffer[0][0])){
-		cat(&buffer[1][0]);	
+		int i =0;
+		while(buffer[1][i]!='\n'){
+			i++;
+		}
+		buffer[1][i]='\0';
+	
+		cat(&buffer[1][0]);
+		clearBuffer(&buffer[1][0]);
+		clearBuffer(&buffer[0][0]);
+		return;	
 	}
 	if(compareStrings("ps",&buffer[0][0])){
-		ps();	
+		ps();
+		return;	
 	}
-/*	if(compareStrings("ls",&buffer[0][0])){
-		ls(buffer[1][0]);	
-	}
-*/	
-	/*
-        if(compareStrings("cd",&buffer[0][0])==1) {
-                changeDirectory(&buffer[1][0]);
-        }
-        else if (compareStrings("ls",&buffer[0][0])==1){
-                //printf("Executing ls in another process");
-                executeInAnotherProcess(envp);
-        }
-        else if(compareStrings("sh",&buffer[0][0])==1){
-                executeInAnotherProcess(envp);
-        }
-        else if(compareStrings("export",&buffer[0][0])==1){
-                //setEnvironmentVariables(splittedInput);
-        }
-        else {
-                //      print("Command not found");
-        }*/
 }
 
 
-void scanInput(char* splittedInput[10],char* input,char delimiter)
+void scanInput(char* input,char delimiter)
 {
         splitString(input,delimiter);
 }
@@ -300,6 +288,11 @@ int stringLength(const char* str){
 }
 
 void readInput(){
-        read(0,inputBuffer,512);
+	read(0,inputBuffer,512);
+/*	int i =0;
+	while(inputBuffer[i]!='\n'){
+		i++;
+	}
+	inputBuffer[i]='\0';*/
 }
 

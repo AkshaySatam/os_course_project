@@ -199,6 +199,7 @@ void sys_write (){
 	::"rax","rdi","rsi","rdx");
 
 	kprintf("%s",buffer);
+//	kprintf("\n");
 	__asm__ volatile (
 			"movq %0,%%rax\n"
 			::"r"(length):);
@@ -253,12 +254,12 @@ void sys_open(){
         :"=m"(buffer), "=m"(flags)
         ::"rax","rdi","rsi");
 
-	kprintf("Open: %s",buffer);	
-	kprintf("Open flags: %d",flags);	
+//	kprintf("Open: %s",buffer);	
+//	kprintf("Open flags: %d",flags);	
      
 	l = open(buffer,flags); 
 
-	kprintf("File descriptor: %d",l);	
+//	kprintf("File descriptor: %d",l);	
 
 	 __asm__ volatile (
         "movq %0,%%rax\n"
@@ -275,7 +276,7 @@ void sys_close(){
         :"=m"(fd)
         ::"rax","rdi");
 
-	kprintf("FD: %d",fd);	
+//	kprintf("FD: %d",fd);	
      
 	l = close(fd); 
 
@@ -302,7 +303,7 @@ void sys_sleep(){
 			break;
 		}
 	}	
-	kprintf("Sleep time: %s",buffer);	
+	//kprintf("Sleep time: %s",buffer);	
 
         __asm__ volatile (
         "movq %0,%%rax\n"
