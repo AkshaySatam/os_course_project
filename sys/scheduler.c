@@ -53,7 +53,23 @@ struct task_struct* addPCB(){
 	initializeKstack(pcbHead);
 	pcbHead->isChild=0;
 	pcbHead->isParent=0;
+	initializeFDList(pcbHead);
 	return pcbHead;	
+}
+
+void initializeFDList(struct task_struct* t){
+
+	struct file_descriptor* fd = t->fdArr;
+	struct file_descriptor* fd1;
+	for(int i =0;i<3;i++){
+		fd1 = fd+i;
+		fd1->free=0;
+	}
+
+	for(int i =3;i<128;i++){
+		fd1 = fd+i;
+		fd1->free=1;
+	}
 }
 
 void removePCB(struct task_struct t){

@@ -1,27 +1,17 @@
 #include<sys/fileDescriptor.h>
 #include<sys/kprintf.h>
 #include<sys/tarfsOps.h>
-/*
-int fd_num = 3;
-
-struct file_descriptor
-{
-	uint64_t startVAddr;
-	uint64_t offset;
-	short fd;
-	short type;
-	short free;	
-};
 
 struct file_descriptor* getFreeFd(){
 	struct file_descriptor* i;
 	i = currentTask->fdArr;
-
+	int count = 0;
 	while(i->free != 1){
 		i++;
+		count++;
 	}
 
-	i->fd = getFdNum();
+	i->fd = count;
 	return i;
 }
 
@@ -38,37 +28,40 @@ int open(const char *pathname, int flags){
 	uint64_t filePtr = searchTarfs(pathname);
 	if(filePtr != -1){
 		fd = getFreeFd();
-		initializeFd(fd,file_type,filePtr);
+		initializeFd(fd,1,filePtr);
 		return fd->fd;
-
 	}
+	kprintf("File not found\n");
 	return -1;
 }
 
 int close(int fd){
+	struct file_descriptor * fd1  = currentTask->fdArr;
+	struct file_descriptor * fdPtr  =  (struct file_descriptor*)(fd1 + fd);
+	fdPtr->free=1;
 	return 0;
 }
 
-ssize_t read(int fd, void *buf, size_t count){
-	memCpy(fd->startVAddress+fd->offset,buf,count);
-	return 0;
+void copyBytes2(uint64_t src, uint64_t dest, uint64_t size){
+        char* s = (char*) src;
+        char* d = (char*) dest; 
+        int count=0;
+        while(count<size){
+                *d++=*s++;
+                count++;
+        }
+        *d='\0';
+}
+
+ssize_t fileRead(int fd, void *buf, size_t count){
+	struct file_descriptor * fd1  = currentTask->fdArr;
+	struct file_descriptor * fdPtr  =  (struct file_descriptor*)(fd1 + fd);
+	copyBytes2(fdPtr->startVAddr+fdPtr->offset,(uint64_t)buf,count);
+	fdPtr->offset = fdPtr->offset + count;
+	return count;
 }
 
 ssize_t write(int fd, const void *buf, size_t count){
 	return 0;
 }
-
-int getFdNum()
-{
-        for(; fd_num < 128; fd_num++) {
-                if(processID[fd_num] == 0) {
-                        processID[fd_num] = 1;
-                        return fd_num;
-                }
-        }
-        return -1;
-}
-
-
-*/
 

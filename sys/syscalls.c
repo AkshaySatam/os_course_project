@@ -202,53 +202,91 @@ void sys_write (){
 	kprintf("%s",buffer);
 //	kprintf("Length: %d\n",length);
 //	yield2();
+	__asm__ volatile (
+			"movq %0,%%rax\n"
+			::"r"(length):);
 }
 
 void sys_read (){
- //	kprintf("In sys_read\n");
-	
-        char* buffer;
-        uint64_t fd, length;
-        __asm__ volatile (
-        "movq %%rdi,%0\n"
-        "movq %%rsi,%1\n"
-        "movq %%rdx,%2\n"
-        :"=m"(fd),"=m"(buffer),"=m"(length)
-        ::"rax","rdi","rsi","rdx");
+	//	kprintf("In sys_read\n");
+
+	char* buffer;
+	uint64_t fd, length;
+	__asm__ volatile (
+			"movq %%rdi,%0\n"
+			"movq %%rsi,%1\n"
+			"movq %%rdx,%2\n"
+			:"=m"(fd),"=m"(buffer),"=m"(length)
+			::"rax","rdi","rsi","rdx");
 
 	//kprintf("FD %d\n",fd);
 	//kprintf("Buffer %s\n",buffer);
 	//kprintf("length %d\n",length);
 
-	
-	
-        //Declare this ptr in term.c and access here.
-        while(1){
-	//	kprintf("In while - sys_read\n");
-                if(valid[read_ptr] == 1){
-		//	kprintf("is Valid");
-                        break;
-                }
-        }
-        //kprintf("%d",read_ptr);
-        term_read(buffer,read_ptr,length);
 
-	
-   	//kprintf("Out of term_read\n");
-        __asm__ volatile (
-        "movq %0,%%rax\n"
-        :"=r"(length)::);
-   	//kprintf("Out of sys_read\n");
-
-		
-     //   kprintf("%s\n",buffer);
+	if(fd == 0){	
+		while(1){
+			if(valid[read_ptr] == 1){
+				break;
+			}
+		}
+		term_read(buffer,read_ptr,length);
+	}
+	else{
+		fileRead(fd,buffer,length);
+	}
+	//   kprintf("%s\n",buffer);
+	__asm__ volatile (
+			"movq %0,%%rax\n"
+			:
+			:"r"(length)
+			:);
+	//kprintf("Out of sys_read\n");
 }
 
 void sys_open(){
 
+        char* buffer;
+	uint64_t flags;
+	uint64_t l=1;
+
+        __asm__ volatile (
+        "movq %%rdi,%0\n"
+        "movq %%rsi,%1\n"
+        :"=m"(buffer), "=m"(flags)
+        ::"rax","rdi","rsi");
+
+	kprintf("Open: %s",buffer);	
+	kprintf("Open flags: %d",flags);	
+     
+	l = open(buffer,flags); 
+
+	kprintf("File descriptor: %d",l);	
+
+	 __asm__ volatile (
+        "movq %0,%%rax\n"
+        :
+	:"m"(l):);	
 }
 
 void sys_close(){
+	uint64_t fd;
+	uint64_t l;
+
+        __asm__ volatile (
+        "movq %%rdi,%0\n"
+        :"=m"(fd)
+        ::"rax","rdi");
+
+	kprintf("FD: %d",fd);	
+     
+	l = close(fd); 
+
+	 __asm__ volatile (
+        "movq %0,%%rax\n"
+        :
+	:"m"(l)
+	:);	
 
 }
 
@@ -272,7 +310,8 @@ void sys_sleep(){
 
         __asm__ volatile (
         "movq %0,%%rax\n"
-        :"=r"(l)::);
+        :
+	:"m"(l):);
 }
 
 int atoi(char *str)

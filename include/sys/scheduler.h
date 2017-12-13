@@ -9,6 +9,8 @@
 extern void context_switch(struct task_struct* prev, struct task_struct* current);
 //struct task_struct* addPCB(struct task_struct t);
 struct task_struct* addPCB();
+
+void initializeFDList(struct task_struct* t);
 void removePCB(struct task_struct t);
 void yield2();
 void initializePCBList();

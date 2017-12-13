@@ -3,7 +3,7 @@
 #include <sys/kprintf.h>
 
 
-uint64_t searchTarfs(char* fName){
+uint64_t searchTarfs(const char* fName){
 	uint64_t* p = (uint64_t*) &_binary_tarfs_start;
 	struct posix_header_ustar* t = (struct posix_header_ustar *) p;
 	uint64_t size = -1;
@@ -33,7 +33,7 @@ uint64_t searchTarfs(char* fName){
 	return -1;
 }
 
-int  compareStrings(char* a,char* b){
+int  compareStrings(const char* a,const char* b){
         //if(stringLength(a)==stringLength(b)){
                 int i=0;
                 while(*(a+i)!='\0'){
