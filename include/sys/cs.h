@@ -25,6 +25,7 @@ typedef enum process_state{
 
 //This is for the PCB list
 struct task_struct* pcbHead, *pcbList;
+uint64_t pcbCount;
 
 struct task_struct{
 	//Do not add any fields on top of the current field. Add at bottom. Because it will break the OS as the byte-shift mentioned in assembly code will cause unexpected results.

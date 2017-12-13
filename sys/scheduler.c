@@ -38,7 +38,7 @@ void initializeKstack(struct task_struct* t){
 
 struct task_struct* addPCB(){
 	struct task_struct t;
-	
+	pcbCount++;	
 	if (pcbHead==NULL){
 		*pcbList = t;
 		pcbHead = pcbList;

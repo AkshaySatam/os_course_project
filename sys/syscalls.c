@@ -314,11 +314,27 @@ void sys_sleep(){
 int atoi(char *str)
 {
     int res = 0;
-  
+//This code is referred from geeksforgeeks.com  
     for (int i = 0; str[i] != '\0'; ++i)
         res = res*10 + str[i] - '0';
   
     return res;
+}
+
+void sys_ps(){
+	int l=0;
+	struct task_struct* t = pcbList;
+	int count =0;
+	kprintf("PID\n");
+	while(count < pcbCount){
+		kprintf("%d\n",t->pid);
+		t++;	
+		count++;
+	}
+        __asm__ volatile (
+        "movq %0,%%rax\n"
+        :
+	:"m"(l):);
 }
 
 void (*sysCallPtr[50]) (void)={
@@ -327,7 +343,8 @@ void (*sysCallPtr[50]) (void)={
 	[2]=sys_fork,
 	[3]=sys_sleep,
 	[4]=sys_open,
-	[5]=sys_close
+	[5]=sys_close,
+	[6]=sys_ps
 };
 
 void sys_fork(){

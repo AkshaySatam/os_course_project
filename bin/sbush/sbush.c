@@ -205,8 +205,21 @@ void cat(char* fileName){
 	}
 }
 
-void ps(){
+int ps(){
+	uint64_t syscall_ps = 6;
+	uint64_t returnCode=0;
 
+	__asm__ volatile (
+			"movq %1, %%rax\n"
+			"syscall\n"
+			"movq %%rax, %0\n"
+			: // output parameters, we aren't outputting anything, no none
+			"=m" (returnCode)
+			: // input parameters mapped to %0 and %1, repsectively
+			"r" (syscall_ps)
+			: // registers that we are "clobbering", unneeded since we are calling exit
+			"rax");
+	return returnCode;
 }
 
 void processInput(char* envp[]){

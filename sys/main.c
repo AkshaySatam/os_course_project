@@ -20,6 +20,7 @@ uint32_t* loader_stack;
 extern char kernmem, physbase;
 void start(uint32_t *modulep, void *physbase, void *physfree)
 {
+	pcbCount=0;
 	videoMem=0xb8000;
 	uint64_t totalMemory=0;
 	uint64_t startIndices[10],endIndices[10];
