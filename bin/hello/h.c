@@ -2,13 +2,12 @@
 #include<sys/defs.h>
 
 
-
 int sleep2(char* time);
 int open2(char* path, uint64_t flags);
 
 void copyString2(char* dest,const char* src, int start, int end);
 
-char inputBuffer[256];
+char inputBuffer[5000];
 
 void copyString2(char* dest,const char* src, int start, int end){
         while(start < end){
@@ -33,12 +32,31 @@ int open2(char* path, uint64_t flags){
 			"syscall\n"
 			"movq %%rax, %0\n"
 			: // output parameters, we aren't outputting anything, no none
-			"=m" (fd)
+			"=r" (fd)
 			: // input parameters mapped to %0 and %1, repsectively
 			"r" (syscall_open), "r"(buf_addr), "r"(flags)
 			: // registers that we are "clobbering", unneeded since we are calling exit
 			"rax", "rdi", "rsi");
 	return fd;
+}
+
+int close2(uint64_t fd){
+	//TODO Will change the sys_cal number later
+	uint64_t syscall_close = 5;
+	uint64_t returnAdd;
+
+	__asm__ volatile (
+			"movq %1, %%rax\n"
+			"movq %2, %%rdi\n"
+			"syscall\n"
+			"movq %%rax, %0\n"
+			: // output parameters, we aren't outputting anything, no none
+			"=r" (returnAdd)
+			: // input parameters mapped to %0 and %1, repsectively
+			"r" (syscall_close), "r"(fd)
+			: // registers that we are "clobbering", unneeded since we are calling exit
+			"rax", "rdi");
+	return returnAdd;
 }
 
 int sleep2(char* time){
@@ -65,7 +83,7 @@ int sleep2(char* time){
 int write2(long fd,char buf[],long length ){
         uint64_t syscall_write = 1;
         uint64_t returnCode=0;
-        char buffer[60];
+        char buffer[5000];
         copyString2(buffer,buf,0,length);
         uint64_t  buf_addr = (uint64_t) buffer;
 //      kprintf("data is %s\n", buffer);
@@ -100,20 +118,21 @@ int read2(long input_file_desc,char buf[],long buf_size){
                         "syscall\n"
                         "movq %%rax, %0"
                         : /* output parameters, we aren't outputting anything, no none */
-                        "=m" (ret)
+                        "=r" (ret)
                         : /* input parameters mapped to %0 and %1, repsectively */
                         "m" (syscall_read),"m"(input_file_desc),"m"(buf_addr), "m"(buf_size)
                         : /* registers that we are "clobbering", unneeded since we are calling exit */
                         "rax", "rdi","rdx","rsi");
         return ret;
 }
-
+/*
 int main(int argc, char* argv[],char* envp[]){
-
+	int count;
 	int fd = open2("etc/dummy.txt",1234);
-	read2(fd,inputBuffer,20);
-//	write2(1,inputBuffer,20);
+	count = read2(fd,inputBuffer,5000);
+	write2(1,inputBuffer,count);
+	close2(fd);
 	while(1){
 		sleep2("5000");
 	}
-}
+}*/

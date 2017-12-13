@@ -16,15 +16,59 @@ void addNullAtTheEnd(char* argv []);
 void clearBuffer(char* c);
 void cat(char* fileName);
 int sleep(char* time);
+int open(char* path, uint64_t flags);
+int close(uint64_t fd);
+
 
 char buffer[10][256];
 char *bufptr[10];
 char* prompt;
-char  inputBuffer[20];
+char  inputBuffer[5000];
 
 void displayPrompt()
 {
         write(1,prompt,1);
+}
+
+int open(char* path, uint64_t flags){
+        //TODO Will change the sys_cal number later
+        uint64_t syscall_open = 4;
+        uint64_t fd;
+        uint64_t buf_addr = (uint64_t)path;
+
+        __asm__ volatile (
+                        "movq %1, %%rax\n"
+                        "movq %2, %%rdi\n"
+                        "movq %3, %%rsi\n"
+                        "syscall\n"
+                        "movq %%rax, %0\n"
+                        : // output parameters, we aren't outputting anything, no none
+                        "=r" (fd)
+                        : // input parameters mapped to %0 and %1, repsectively
+                        "r" (syscall_open), "r"(buf_addr), "r"(flags)
+                        : // registers that we are "clobbering", unneeded since we are calling exit
+                        "rax", "rdi", "rsi");
+        return fd;
+}
+
+
+int close(uint64_t fd){
+        //TODO Will change the sys_cal number later
+        uint64_t syscall_close = 5;
+        uint64_t returnAdd;
+
+        __asm__ volatile (
+                        "movq %1, %%rax\n"
+                        "movq %2, %%rdi\n"
+                        "syscall\n"
+                        "movq %%rax, %0\n"
+                        : // output parameters, we aren't outputting anything, no none
+                        "=r" (returnAdd)
+                        : // input parameters mapped to %0 and %1, repsectively
+                        "r" (syscall_close), "r"(fd)
+                        : // registers that we are "clobbering", unneeded since we are calling exit
+                        "rax", "rdi");
+        return returnAdd;
 }
 
 void copyString(char* dest,const char* src, int start, int end){
@@ -38,32 +82,31 @@ void copyString(char* dest,const char* src, int start, int end){
 }
 
 int write (long fd,char buf[],long length ){
-        uint64_t syscall_write = 1;
-        uint64_t returnCode=0;
-        char buffer[60];
-        copyString(buffer,buf,0,length);
-        uint64_t  buf_addr = (uint64_t) buffer;
-//      kprintf("data is %s\n", buffer);
+	uint64_t syscall_write = 1;
+	uint64_t returnCode=0;
+	char buffer[5000];
+	copyString(buffer,buf,0,length);
+	uint64_t  buf_addr = (uint64_t) buffer;
+	//      kprintf("data is %s\n", buffer);
 
-         __asm__ volatile (
-                        "movq %1, %%rax\n"
-                        "movq %2, %%rdi\n"
-                        "movq %3, %%rsi\n"
-                        "movq %4, %%rdx\n"
-                        "syscall\n"
-                        "movq %%rax, %0\n"
-                        : // output parameters, we aren't outputting anything, no none
-                        "=r" (returnCode)
-                        : // input parameters mapped to %0 and %1, repsectively
-                        "r" (syscall_write), "r" (fd), "r" (buf_addr),"r" (length)
-                        //, "m" (syscall_exit),"m" (exit_status)
-                        : // registers that we are "clobbering", unneeded since we are calling exit
-                        "rax", "rdi","rsi","rdx");
-        return returnCode;
+	__asm__ volatile (
+			"movq %1, %%rax\n"
+			"movq %2, %%rdi\n"
+			"movq %3, %%rsi\n"
+			"movq %4, %%rdx\n"
+			"syscall\n"
+			"movq %%rax, %0\n"
+			: // output parameters, we aren't outputting anything, no none
+			"=r" (returnCode)
+			: // input parameters mapped to %0 and %1, repsectively
+			"r" (syscall_write), "r" (fd), "r" (buf_addr),"r" (length)
+			//, "m" (syscall_exit),"m" (exit_status)
+			: // registers that we are "clobbering", unneeded since we are calling exit
+			"rax", "rdi","rsi","rdx");
+	return returnCode;
 }
 
 int read(long input_file_desc,char buf[],long buf_size){
-
 	unsigned long syscall_read = 0;
 	long buf_addr = (long)inputBuffer;
 	long ret;
@@ -75,14 +118,14 @@ int read(long input_file_desc,char buf[],long buf_size){
 			"syscall\n"
 			"movq %%rax, %0"
 			: /* output parameters, we aren't outputting anything, no none */
-			"=m" (ret)
+			"=r" (ret)
 			: /* input parameters mapped to %0 and %1, repsectively */
 			"m" (syscall_read),"m"(input_file_desc),"m"(buf_addr), "m"(buf_size)
 			: /* registers that we are "clobbering", unneeded since we are calling exit */
 			"rax", "rdi","rdx","rsi");
 	return ret;
 }
-/*
+
 int main(int argc, char* argv[],char* envp[]){
 	prompt = "$";
 
@@ -108,7 +151,7 @@ int main(int argc, char* argv[],char* envp[]){
 	}
 
 }
-*/
+
 int compareStrings(const char* a,const char* b){
                 int i=0;
                 while(*(a+i)!='\0'){
@@ -158,10 +201,17 @@ int sleep(char* time){
 }
 
 void cat(char* fileName){
-	//open the file
-	//read it
-	//write to stdout
-	//close the file
+	int count;
+	int fd = open(fileName,1234);
+	if(fd!=1){
+		count = read(fd,inputBuffer,5000);
+		write(1,inputBuffer,count);
+		close(fd);
+	}
+}
+
+void ps(){
+
 }
 
 void processInput(char *splittedInput[],char* envp[]){
@@ -184,6 +234,9 @@ void processInput(char *splittedInput[],char* envp[]){
    	}
 	if(compareStrings("cat",&buffer[0][0])){
 		cat(&buffer[1][0]);	
+	}
+	if(compareStrings("ps",&buffer[0][0])){
+		ps();	
 	}
 /*	if(compareStrings("ls",&buffer[0][0])){
 		ls(buffer[1][0]);	

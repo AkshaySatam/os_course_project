@@ -138,7 +138,7 @@ void syscallHandler(){
 			"movq %%rsp,%%gs:16\n"
 			"movq %%gs:8,%%rsp\n"
 //			"pushq %%gs:16\n"
-			"push %%rax\n" // Ignore: Dont push/pop rax as it will be used to return the value
+//TODO Fork wont work.			"push %%rax\n" // Ignore: Dont push/pop rax as it will be used to return the value
 			"push %%rbx\n"
 			"push %%rcx\n"
 			"push %%rdx\n"
@@ -167,7 +167,7 @@ void syscallHandler(){
 			"pop %%rdx\n"
 			"pop %%rcx\n"
 			"pop %%rbx\n"
-			"pop %%rax\n"	
+//			"pop %%rax\n"	
 			//"pop %%gs:16\n"
 			"movq %%rsp,%%gs:8\n"
 			"movq %%gs:16,%%rsp\n"
@@ -198,10 +198,7 @@ void sys_write (){
 	:"=m"(fd),"=m"(buffer),"=m"(length)
 	::"rax","rdi","rsi","rdx");
 
-//	kprintf("FD: %d\n",fd);
 	kprintf("%s",buffer);
-//	kprintf("Length: %d\n",length);
-//	yield2();
 	__asm__ volatile (
 			"movq %0,%%rax\n"
 			::"r"(length):);
@@ -233,7 +230,7 @@ void sys_read (){
 		term_read(buffer,read_ptr,length);
 	}
 	else{
-		fileRead(fd,buffer,length);
+		length = fileRead(fd,buffer,length);
 	}
 	//   kprintf("%s\n",buffer);
 	__asm__ volatile (
@@ -248,7 +245,7 @@ void sys_open(){
 
         char* buffer;
 	uint64_t flags;
-	uint64_t l=1;
+	volatile uint64_t l=1;
 
         __asm__ volatile (
         "movq %%rdi,%0\n"
@@ -266,7 +263,7 @@ void sys_open(){
 	 __asm__ volatile (
         "movq %0,%%rax\n"
         :
-	:"m"(l):);	
+	:"r"(l):"rax");	
 }
 
 void sys_close(){
@@ -285,9 +282,8 @@ void sys_close(){
 	 __asm__ volatile (
         "movq %0,%%rax\n"
         :
-	:"m"(l)
-	:);	
-
+	:"r"(l)
+	:"rax");	
 }
 
 void sys_sleep(){

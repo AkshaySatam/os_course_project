@@ -18,7 +18,7 @@ void kprintf(const char* format, ...){
 	char *s;
 	int i;
 	long l;
-	char finalArray [1000];
+	char finalArray [5000];
 	char* traverseFinalArray;
 	traverseFinalArray = finalArray;
 	va_list arg; 

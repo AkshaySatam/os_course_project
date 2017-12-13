@@ -42,21 +42,25 @@ int close(int fd){
 	return 0;
 }
 
-void copyBytes2(uint64_t src, uint64_t dest, uint64_t size){
+int copyBytes2(uint64_t src, uint64_t dest, uint64_t size){
         char* s = (char*) src;
         char* d = (char*) dest; 
         int count=0;
         while(count<size){
+		if(*s == '\0'){
+			break;
+		}
                 *d++=*s++;
                 count++;
         }
         *d='\0';
+	return count;
 }
 
 ssize_t fileRead(int fd, void *buf, size_t count){
 	struct file_descriptor * fd1  = currentTask->fdArr;
 	struct file_descriptor * fdPtr  =  (struct file_descriptor*)(fd1 + fd);
-	copyBytes2(fdPtr->startVAddr+fdPtr->offset,(uint64_t)buf,count);
+	count = copyBytes2(fdPtr->startVAddr+fdPtr->offset,(uint64_t)buf,count);
 	fdPtr->offset = fdPtr->offset + count;
 	return count;
 }

@@ -60,7 +60,7 @@ void processPreloading(uint64_t entry){
 	currentTask->pml4P = pml4;
 
 	//Entering Stack details
-	enterVMAdetails(currentTask, 0,0x00000000fffef000,4096*10,1);
+	enterVMAdetails(currentTask, 0,0x00000000fffef000-(4096*10),4096*11,1);
 	assignUserStack(currentTask,entry);
 }
 
